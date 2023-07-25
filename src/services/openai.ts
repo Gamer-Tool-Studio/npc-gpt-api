@@ -1,30 +1,30 @@
-import openai from 'src/lib/openai'
-import type { characterType } from 'src/types'
+import openai from 'src/lib/openai';
+import type { CharacterType } from 'src/types';
 
-import { promptTemplate } from '~/lib/characterBuilder'
+import { promptTemplate } from '~/lib/characterBuilder';
 
-type generatePromptRes = Record<string, string>
-type generatePromptReq = ({ characterJson }: { characterJson: characterType }) => Promise<generatePromptRes>
+type GeneratePromptRes = Record<string, string>;
+type GeneratePromptReq = ({ characterJson }: { characterJson: CharacterType }) => Promise<GeneratePromptRes>;
 
-const generatePrompt: generatePromptReq = async ({ characterJson }) => {
-  const prompt = promptTemplate(characterJson)
+const generatePrompt: GeneratePromptReq = async ({ characterJson }) => {
+  const prompt = promptTemplate(characterJson);
 
-  return { prompt }
-}
+  return { prompt };
+};
 
-module.exports = {
-  createCompletion: async ({ prompt }: { prompt: string }) => {
-    const response = await openai.createCompletion({
-      model: 'text-davinci-003',
-      prompt,
-      max_tokens: 7,
-      temperature: 0
-    })
-    return response.data
-  },
-  listEngines: async () => {
-    const response = await openai.listEngines()
-    return response.data
-  },
-  generatePrompt
-}
+const listEngines = async () => {
+  const response = await openai.listEngines();
+  return response.data;
+};
+
+const createCompletion = async ({ prompt }: { prompt: string }) => {
+  const response = await openai.createCompletion({
+    model: 'text-davinci-003',
+    prompt,
+    max_tokens: 7,
+    temperature: 0,
+  });
+  return response.data;
+};
+
+export { createCompletion, listEngines, generatePrompt };

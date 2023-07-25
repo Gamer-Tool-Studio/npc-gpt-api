@@ -1,7 +1,5 @@
-'use strict'
-
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
 
 module.exports = function bodyParserUrlEncodeFactory() {
-  return bodyParser.urlencoded({ limit: '50mb', extended: false })
-}
+  return bodyParser.urlencoded({ limit: '50mb', extended: false });
+};

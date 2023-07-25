@@ -1,3 +1,3 @@
 /// <reference types="./character" />
 
-export * from './character'
+export * from './character';

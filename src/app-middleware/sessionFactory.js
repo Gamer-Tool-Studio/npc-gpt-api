@@ -1,21 +1,19 @@
-'use strict'
+const session = require('express-session');
+const { Router } = require('express');
 
-var session = require('express-session')
-const { Router } = require('express')
+const router = Router();
 
-let router = Router()
-
-const oneDay = 1000 * 60 * 60 * 24
+const oneDay = 1000 * 60 * 60 * 24;
 
 router.use(
   session({
     secret: 'thisismysecrctekeyfhrgfgrfrty84fwir767',
     saveUninitialized: true,
     cookie: { maxAge: oneDay },
-    resave: false
-  })
-)
+    resave: false,
+  }),
+);
 
 module.exports = function sessionFactory() {
-  return router
-}
+  return router;
+};

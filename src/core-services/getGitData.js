@@ -1,5 +1,3 @@
-'use strict';
-
 const gitRev = require('git-rev');
 
 const gitData = {

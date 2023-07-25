@@ -1,5 +1,3 @@
-'use strict';
-
 const { Router } = require('express');
 
 function unmatchedRouteHandler(request, response, next) {

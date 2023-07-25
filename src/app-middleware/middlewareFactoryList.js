@@ -1,3 +1,4 @@
+/* eslint-disable global-require */
 module.exports = [
   require('./bodyParserJsonFactory'),
   require('./bodyParserUrlEncodeFactory'),
@@ -16,5 +17,5 @@ module.exports = [
   require('./unmatchedRouteHandlerFactory'),
 
   // Make sure configureErrorHandler is LAST!!!
-  require('./errorHandlerFactory')
-]
+  require('./errorHandlerFactory'),
+];

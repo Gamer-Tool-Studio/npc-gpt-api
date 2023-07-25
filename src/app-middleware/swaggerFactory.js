@@ -1,5 +1,3 @@
-'use strict';
-
 const { Router } = require('express');
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUI = require('swagger-ui-express');
