@@ -1,11 +1,9 @@
-'use strict'
+const { Router } = require('express');
+const routes = require('src/router');
 
-const { Router } = require('express')
-const routes = require('~/routes')
+const router = Router();
 
-let router = Router()
-
-router.use('/api/v1', routes)
+router.use('/api/v1', routes);
 module.exports = function routesFactory() {
-  return router
-}
+  return router;
+};

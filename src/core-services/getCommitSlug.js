@@ -1,5 +1,3 @@
-'use strict';
-
 const fs = require('fs');
 const path = require('path');
 
@@ -15,6 +13,5 @@ async function getCommitSlug() {
     resolve(gitCommitSlug);
   });
 }
-
 
 module.exports = getCommitSlug;

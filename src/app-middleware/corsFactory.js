@@ -1,5 +1,3 @@
-'use strict';
-
 const cors = require('cors');
 
 function parseValues(originalValues) {

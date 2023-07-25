@@ -1,32 +1,34 @@
-const writeError = require('~/core-services/logFunctionFactory').getErrorLogger('routes')
+const writeError = require('~/core-services/logFunctionFactory').getErrorLogger('routes');
 
-const { Router } = require('express')
+const { Router } = require('express');
 
-const fs = require('fs')
-const path = require('path')
+const fs = require('fs');
+const path = require('path');
 
-const router = Router()
+const router = Router();
 
 function loadRoutes() {
-  const routePath = path.resolve('./src/routes')
+  const routePath = path.resolve('./src/routes');
 
-  fs.readdirSync(routePath).forEach(async (file) => {
-    const extension = file.slice(file.length - 3, file.length)
-    if (file === 'index.js' || extension !== '.js') return
+  fs.readdirSync(routePath).forEach(async (file: string) => {
+    const extension = file.slice(file.length - 3, file.length);
+    if (file === 'index.js' || extension !== '.ts') return;
     try {
-      const baseRoot = file.slice(0, file.length - 3)
-      const route = await require(`./${file}`)
+      const baseRoot = file.slice(0, file.length - 3);
+      // eslint-disable-next-line import/no-dynamic-require, global-require
+      const route = await require(`./${file}`).default;
       // let route = require('./chat')
-      router.use(`/${baseRoot}`, route)
+      router.use(`/${baseRoot}`, route);
+      // eslint-disable-next-line no-console
     } catch (err) {
-      writeError('Error loading route ', file, ' ', err)
+      writeError('Error loading route ', file, ' ', err);
     }
-  })
+  });
 }
 
-loadRoutes()
+loadRoutes();
 
-module.exports = router
+export = router;
 
 /**
  * @swagger
