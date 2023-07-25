@@ -196,6 +196,17 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\ncons
 
 /***/ }),
 
+/***/ 567:
+/*!****************************!*\
+  !*** ./src/routes/auth.js ***!
+  \****************************/
+/***/ ((module, exports, __webpack_require__) => {
+
+"use strict";
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst auth_1 = __webpack_require__(/*! ~/services/auth */ 797);\nconst { logDebug, logError } = (__webpack_require__(/*! src/core-services/logFunctionFactory */ 268).getLogger)(\"chat\");\nconst { Router } = __webpack_require__(/*! express */ 860);\nconst router = Router();\nrouter.post(\"/gen-auth\", async (request, response) => {\n    try {\n        console.log(\" **** Auth token route **** \");\n        response.status(200).json({ token: \"benfica\" });\n    }\n    catch (ex) {\n        logError(\"get todo \", ex);\n        response.status(500).json({ error: ex });\n    }\n});\nmodule.exports = router;\n\n\n//# sourceURL=webpack://secret-gpt-api/./src/routes/auth.js?");
+
+/***/ }),
+
 /***/ 548:
 /*!****************************!*\
   !*** ./src/routes/chat.js ***!
@@ -218,6 +229,17 @@ eval("\nconst writeError = (__webpack_require__(/*! ~/core-services/logFunctionF
 
 /***/ }),
 
+/***/ 797:
+/*!******************************!*\
+  !*** ./src/services/auth.js ***!
+  \******************************/
+/***/ ((module) => {
+
+"use strict";
+eval("\n// eslint-disable-next-line arrow-body-style\nconst logError = console.log;\nconst authLogin = async function (data) {\n    console.log(\"********* authenticator route **********\", data);\n    try {\n        return { authToken: \"0x13124124343\" };\n    }\n    catch (ex) {\n        logError(\"Error validating data \", ex);\n        throw ex;\n    }\n};\nmodule.exports = { authLogin };\n\n\n//# sourceURL=webpack://secret-gpt-api/./src/services/auth.js?");
+
+/***/ }),
+
 /***/ 329:
 /*!********************************!*\
   !*** ./src/services/openai.ts ***!
@@ -235,7 +257,7 @@ eval("\nvar __importDefault = (this && this.__importDefault) || function (mod) {
   \***********************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-eval("var map = {\n\t\"./\": 18,\n\t\"./chat\": 548,\n\t\"./chat.js\": 548,\n\t\"./index\": 18,\n\t\"./index.js\": 18\n};\n\n\nfunction webpackContext(req) {\n\tvar id = webpackContextResolve(req);\n\treturn __webpack_require__(id);\n}\nfunction webpackContextResolve(req) {\n\tif(!__webpack_require__.o(map, req)) {\n\t\tvar e = new Error(\"Cannot find module '\" + req + \"'\");\n\t\te.code = 'MODULE_NOT_FOUND';\n\t\tthrow e;\n\t}\n\treturn map[req];\n}\nwebpackContext.keys = function webpackContextKeys() {\n\treturn Object.keys(map);\n};\nwebpackContext.resolve = webpackContextResolve;\nmodule.exports = webpackContext;\nwebpackContext.id = 150;\n\n//# sourceURL=webpack://secret-gpt-api/./src/routes/_sync_^\\.\\/.*$?");
+eval("var map = {\n\t\"./\": 18,\n\t\"./auth\": 567,\n\t\"./auth.js\": 567,\n\t\"./chat\": 548,\n\t\"./chat.js\": 548,\n\t\"./index\": 18,\n\t\"./index.js\": 18\n};\n\n\nfunction webpackContext(req) {\n\tvar id = webpackContextResolve(req);\n\treturn __webpack_require__(id);\n}\nfunction webpackContextResolve(req) {\n\tif(!__webpack_require__.o(map, req)) {\n\t\tvar e = new Error(\"Cannot find module '\" + req + \"'\");\n\t\te.code = 'MODULE_NOT_FOUND';\n\t\tthrow e;\n\t}\n\treturn map[req];\n}\nwebpackContext.keys = function webpackContextKeys() {\n\treturn Object.keys(map);\n};\nwebpackContext.resolve = webpackContextResolve;\nmodule.exports = webpackContext;\nwebpackContext.id = 150;\n\n//# sourceURL=webpack://secret-gpt-api/./src/routes/_sync_^\\.\\/.*$?");
 
 /***/ }),
 
