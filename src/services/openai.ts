@@ -1,15 +1,30 @@
+import { ChatCompletionRequestMessage } from 'openai';
 import openai from 'src/lib/openai';
 import type { CharacterType } from 'src/types';
 
-import { promptTemplate } from '~/lib/characterBuilder';
+import { characterScriptBuilder } from '~/lib/characterBuilder';
 
-type GeneratePromptRes = Record<string, string>;
-type GeneratePromptReq = ({ characterJson }: { characterJson: CharacterType }) => Promise<GeneratePromptRes>;
+// type GeneratePromptRes = Record<string, string>;
+type GeneratePromptReq = ({
+  characterJson,
+  currentHistory,
+}: {
+  characterJson: CharacterType;
+  currentHistory: Array<ChatCompletionRequestMessage>;
+}) => Promise<Record<string, Array<ChatCompletionRequestMessage>>>;
 
-const generatePrompt: GeneratePromptReq = async ({ characterJson }) => {
-  const prompt = promptTemplate(characterJson);
+const generatePrompt: GeneratePromptReq = async ({ characterJson, currentHistory }) => {
+  const character = characterScriptBuilder(characterJson);
 
-  return { prompt };
+  const messages = [
+    {
+      role: 'system',
+      content: character,
+    },
+    ...currentHistory,
+  ] as Array<ChatCompletionRequestMessage>;
+
+  return { messages };
 };
 
 const listEngines = async () => {
@@ -17,10 +32,10 @@ const listEngines = async () => {
   return response.data;
 };
 
-const createCompletion = async ({ prompt }: { prompt: string }) => {
-  const response = await openai.createCompletion({
+const createCompletion = async ({ messages }: { messages: Array<ChatCompletionRequestMessage> }) => {
+  const response = await openai.createChatCompletion({
     model: 'text-davinci-003',
-    prompt,
+    messages,
     max_tokens: 7,
     temperature: 0,
   });

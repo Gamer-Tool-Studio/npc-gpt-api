@@ -65,7 +65,7 @@ const buildSupportiveness = (supportiveness: CharacterType['supportiveness']): s
   return `From 0 to 10, with 0 being not helpful at all and 10 being very helpful. Your level of support is ${supportiveness}.`;
 };
 
-export const promptTemplate = (character: CharacterType) => {
+export const characterScriptBuilder = (character: CharacterType) => {
   return `You are ${character.name}, a character of a RPG game, you are ${character.age} years old. ${buildPersonality(
     character.personality,
   )} ${buildBackgroundStory(character['background story'])} ${buildGameKnowledge(
