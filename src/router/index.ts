@@ -8,11 +8,11 @@ const path = require('path');
 const router = Router();
 
 function loadRoutes() {
-  const routePath = path.resolve('./src/routes');
+  const routePath = path.resolve('./src/router');
 
   fs.readdirSync(routePath).forEach(async (file: string) => {
     const extension = file.slice(file.length - 3, file.length);
-    if (file === 'index.js' || extension !== '.ts') return;
+    if (file === 'index.ts' || extension !== '.ts') return;
     try {
       const baseRoot = file.slice(0, file.length - 3);
       // eslint-disable-next-line import/no-dynamic-require, global-require
