@@ -1,14 +1,16 @@
 "use strict";
 
 const { Router } = require("express");
-const logDebug = require("$core-services/logFunctionFactory").getDebugLogger();
-const logError = require("$core-services/logFunctionFactory").getErrorLogger();
-const challenges = require("$services/challenges");
+const { logDebug } = require("src/core-services/logFunctionFactory").getLogger(
+  "requestCalls"
+);
+
+// const challenges = require("$services/challenges");
 
 /**
  * Routes that uses authentications
  */
-const authRoutes = ["/api/gen-auth"];
+const authRoutes = ["/api/v1/auth/gen-auth"];
 
 const signValidatorHandler = async function (req, response, next) {
   logDebug(
@@ -20,22 +22,27 @@ const signValidatorHandler = async function (req, response, next) {
   );
 
   const calledUrl = req.originalUrl.split("?")[0];
+  logDebug("called url ", calledUrl);
 
   if (authRoutes.includes(calledUrl)) {
     try {
-      const authToken = req.header("Barear") || null;
+      const authToken = req.header("Authorization") || null;
       logDebug("AuthToken in header: ", authToken);
 
       if (!authToken) {
-        logDebug(
-          "Missing authorization token in header 'WalliD-Authorization'"
-        );
-
+        logDebug("Missing authorization token in header 'Authorization' ");
         let err = new Error("Unauthorized");
         err.status = 401;
         next(err);
       } else {
-        console.log("check if token is valid and billing its OK");
+        console.log(
+          "check if token is valid and billing its OK : AUTH_ ",
+          authToken
+        );
+        response.locals = {
+          username: "userA",
+          authToken: authToken,
+        };
         next();
       }
     } catch (error) {
