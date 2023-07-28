@@ -1,7 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { listEngines, createCompletion, generatePrompt } from '~/services/openai';
-import { getHistory } from 'src/services/database';
+import { getCharacterJson } from 'src/services/database';
 import parameterValidator from 'src/core-services/parameterValidator';
+import { characterScriptBuilder } from 'src/lib/characterBuilder';
+import { isArrayOf } from 'src/lib/util';
+import { ChatCompletionRequestMessage } from 'openai';
+import { ChatCompletionRequestMessageClass } from 'src/types/openai.types';
 
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('chat');
 
@@ -18,27 +22,31 @@ router.get('/list-engines', async (req: Request, res: Response) => {
 });
 
 router.post('/send-message', async (req: Request, res: Response) => {
-  const params = ['userInput', 'characterId', 'playerId'];
+  const params = ['userInput', 'characterId', 'playerId', 'currentHistory'];
   try {
     parameterValidator(req.body, params);
 
-    const userInput = req.body.text;
-
-    const { characterId, playerId } = req.body;
+    const { characterId, playerId, userInput } = req.body;
+    let { currentHistory } = req.body as { currentHistory: Array<ChatCompletionRequestMessage> };
 
     // TODO: when does the character is initiated
-    const { characterJson } = req.body;
 
     // TODO: get message from redis to get the character history
-    logDebug('send-message request:', userInput);
+    logDebug('send-message userInput:', userInput);
 
-    const currentHistory = await getHistory({ characterId, playerId });
+    // eslint-disable-next-line @typescript-eslint/naming-convention, object-curly-newline
 
-    if (currentHistory == null) {
-      res.status(500).json({ error: `No History for this ${characterId} and ${playerId}` });
+    if (!isArrayOf<ChatCompletionRequestMessage>(currentHistory, ['role', 'content', 'name', 'function_call'])) {
+      logDebug('create new history for character');
+
+      const { characterJson } = await getCharacterJson({ characterId, playerId });
+      const character = characterScriptBuilder(characterJson);
+      currentHistory = [new ChatCompletionRequestMessageClass('system', character)];
+      // is this correct, maybe we should initiate a new history instead of error
+      // res.status(500).json({ error: `No History for this ${characterId} and ${playerId}` });
     }
 
-    const { messages } = await generatePrompt({ characterJson, currentHistory });
+    const { messages } = await generatePrompt({ userInput, currentHistory });
 
     logDebug('messages:', messages);
 
@@ -49,33 +57,30 @@ router.post('/send-message', async (req: Request, res: Response) => {
     const { choices } = response;
 
     if (choices && choices.length > 0) {
-      const generatedResponse = choices[0].message?.content?.trim();
-      res.json({ response: generatedResponse });
+      const generatedResponse = choices[0].message;
+      res.json({ response: generatedResponse, currentHistory: [...currentHistory, generatedResponse] });
     } else {
       res.status(500).json({ error: 'No response from the OpenAI API' });
     }
   } catch (error: any) {
-    logError('Error:', error?.messag);
+    logError('Error:', error?.message);
     res.status(500).json({ error: 'An error occurred', message: error.message });
   }
 });
 
 router.post('/generate-prompt', async (req: Request, res: Response) => {
   const characterJson = req.body;
-  const { characterId, playerId } = req.body;
 
   try {
     logDebug('send-message request:', characterJson);
-    const currentHistory = await getHistory({ characterId, playerId });
+    const character = characterScriptBuilder(characterJson);
 
-    const response = await generatePrompt({ characterJson, currentHistory });
+    // const response = await generatePrompt({ characterJson, currentHistory });
 
-    logDebug('Response:', response);
+    logDebug('Response:', character);
 
-    const { prompt } = await response;
-
-    if (prompt) {
-      res.json({ response: prompt });
+    if (character) {
+      res.json({ characterScript: character });
     } else {
       res.status(500).json({ error: 'No response from the OpenAI API' });
     }
