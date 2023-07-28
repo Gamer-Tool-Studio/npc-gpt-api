@@ -1,20 +1,21 @@
 module.exports = [
-  require('./bodyParserJsonFactory'),
-  require('./bodyParserUrlEncodeFactory'),
+  require("./bodyParserJsonFactory"),
+  require("./bodyParserUrlEncodeFactory"),
   // require('./apiAuthenticator'),
   // require('./verifyOperationBalance'),
-  require('./requestCalls'),
-  require('./swaggerFactory'),
-  require('./corsFactory'),
-  require('./sessionFactory'),
+  require("./requestCalls"),
+  require("./swaggerFactory"),
+  require("./corsFactory"),
+  require("./sessionFactory"),
 
   // Routes should immediately precede Error Handlers
 
-  require('./staticFilesFactory'),
-  require('./routesFactory'),
+  require("./staticFilesFactory"),
+  require("./apiAuthenticator"),
+  require("./routesFactory"),
 
-  require('./unmatchedRouteHandlerFactory'),
+  require("./unmatchedRouteHandlerFactory"),
 
   // Make sure configureErrorHandler is LAST!!!
-  require('./errorHandlerFactory')
-]
+  require("./errorHandlerFactory"),
+];
