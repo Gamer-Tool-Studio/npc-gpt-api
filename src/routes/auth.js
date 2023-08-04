@@ -21,6 +21,23 @@ router.post('/gen-auth', async (request, response) => {
   }
 })
 
+router.post('/login', async (request, response) => {
+  try {
+    console.log(' **** login **** ')
+
+    console.log(' **** locals ', response.locals.username, ' auth token ', response.locals.authToken)
+
+    let authToken = await authLogin()
+
+    response.status(200).json({
+      token: authToken
+    })
+  } catch (ex) {
+    logError('login error ', ex)
+    response.status(500).json({ error: ex })
+  }
+})
+
 router.post('/reset-secret', async (request, response) => {
   try {
     console.log(' **** reset-secret **** route ')

@@ -32,22 +32,32 @@ const Database = {
   createAccount: (data, options) => {
     return Mongo.account.create(data, options)
   },
+  createSession: (data, options) => {
+    return Mongo.session.create(data, options)
+  },
+  findSession: (filter, select, options) => {
+    return Mongo.session.find(filter, select, options)
+  },
+
   findAccount: (filter, select, options) => {
     return Mongo.socialProof.find(filter, select, options)
   },
-  createBillingDay: (data, options) => {
-    return Mongo.billingDay.create(data, options)
+
+  findAndUpdateBillingDay: (query, data, options) => {
+    return Mongo.billingDay.updateOne(data, options)
   },
+  createBillingLog: (query, data, options) => {
+    return Mongo.billing.updateOne(data, options)
+  },
+
   findBillingDay: (filter, select, options) => {
     return Mongo.billingDay.find(filter, select, options)
   },
 
-  findPendingInvite: (filter, select, options) => {
-    return Mongo.pendingInvites.find(filter, select, options)
+  findBillingLog: (filter, select, options) => {
+    return Mongo.billing.find(filter, select, options)
   },
-  deleteOnInvite: (criteria) => {
-    return Mongo.pendingInvites.deleteOne(criteria)
-  },
+
   findUsers: (filter, select, options) => {
     console.log('BD Filter users ', filter)
     return Mongo.user.find(filter, select, options)
