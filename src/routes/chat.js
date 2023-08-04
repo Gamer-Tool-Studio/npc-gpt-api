@@ -19,12 +19,12 @@ router.get('/list-engines', async (request, response) => {
 
 router.post('/test_billing', async (request, response) => {
   try {
-    const message = request.body.message
+    console.log('Billing account route ***** ', request.body)
 
-    await inputBillingEvent(message)
-    await outputBillingEvent(message)
+    let inputWords = await inputBillingEvent(request.body)
+    let outputWords = await outputBillingEvent(request.body)
 
-    response.status(200).json(engines)
+    response.status(200).json({ inputWords, outputWords })
   } catch (ex) {
     logError('get todo ', ex)
     response.status(500).json({ error: ex })

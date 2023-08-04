@@ -6,7 +6,7 @@ const accountSchema = new Schema(
     apiSecret: Object,
     email: String
   },
-  { collection: 'abstract', versionKey: false }
+  { collection: 'account', versionKey: false }
 )
 accountSchema.set('timestamps', true)
 

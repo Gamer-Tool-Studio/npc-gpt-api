@@ -14,8 +14,16 @@ function generateKey(size = 32, format = 'base64') {
 const authLogin = async function (data) {
   console.log('********* authenticator route **********', data)
 
+  let token = generateKey(12)
+  let newBody = {
+    accountId: data.accountId,
+    sessionId: token
+  }
+  let createdSession = await DB.createSession(newBody)
+  console.log('created session id ', createdSession)
+
   try {
-    return { authToken: '0x13124124343' }
+    return { authToken: token }
   } catch (ex) {
     logError('Error validating data ', ex)
     throw ex
