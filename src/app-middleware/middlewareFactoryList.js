@@ -12,6 +12,7 @@ module.exports = [
   // Routes should immediately precede Error Handlers
 
   require('./staticFilesFactory'),
+  require('./apiAuthenticator'),
   require('./routesFactory'),
 
   require('./unmatchedRouteHandlerFactory'),
