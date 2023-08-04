@@ -15,7 +15,7 @@ function countWords(str) {
  */
 const inputBillingEvent = async function (inputData) {
   let wordsCount = countWords(
-    inputData.message || 'ola este e só para testar, vamos ver quantas palavras é que isto manja! '
+    inputData.messageIn || 'ola este e só para testar, vamos ver quantas palavras é que isto manja! '
   )
 
   console.log('********* inputBillingEvent service **********', inputData)
@@ -32,7 +32,7 @@ const inputBillingEvent = async function (inputData) {
     $inc: { totalInputWords: wordsCount }
   }
   const options = { upsert: true }
-  let result = await DB.createBillingLog({ accountId: inputData.accountId }, updateBody, options)
+  let result = await DB.findAndUpdateBillingLog({ accountId: inputData.accountId }, updateBody, options)
 
   // increment billing with day key
   let billingDayKey = await DB.findAndUpdateBillingDay(
@@ -42,7 +42,7 @@ const inputBillingEvent = async function (inputData) {
   )
 
   try {
-    return { data: result, inputWordsCount: wordsCount }
+    return { data: wordsCount }
   } catch (ex) {
     logError('Error validating data ', ex)
     throw ex
@@ -56,7 +56,7 @@ const inputBillingEvent = async function (inputData) {
  */
 const outputBillingEvent = async function (inputData) {
   let wordsCount = countWords(
-    inputData.message || 'ola este e só para testar, vamos ver quantas palavras é que isto manja! '
+    inputData.messageOut || 'ola este e só para testar, vamos ver quantas palavras é que isto manja! '
   )
 
   console.log('********* inputBillingEvent service **********', inputData)
@@ -70,7 +70,7 @@ const outputBillingEvent = async function (inputData) {
 
   //increment billing log
   const options = { upsert: true }
-  let billingLogOut = await DB.createBillingLog(
+  let billingLogOut = await DB.findAndUpdateBillingLog(
     { accountId: inputData.accountId },
     { $inc: { totalOutputWords: wordsCount } },
     options
@@ -84,7 +84,7 @@ const outputBillingEvent = async function (inputData) {
   )
 
   try {
-    return { data: result, outputWordsCount: wordsCount }
+    return { data: wordsCount }
   } catch (ex) {
     logError('Error validating data ', ex)
     throw ex
