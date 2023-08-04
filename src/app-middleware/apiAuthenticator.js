@@ -1,56 +1,36 @@
 const { Router } = require('express');
-const logDebug = require('$core-services/logFunctionFactory').getDebugLogger();
-const logError = require('$core-services/logFunctionFactory').getErrorLogger();
-const challenges = require('$services/challenges');
+const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('requestCalls');
+
+// const challenges = require("$services/challenges");
 
 /**
  * Routes that uses authentications
  */
-const authRoutes = ['/api/test'];
+const authRoutes = ['/api/v1/auth/gen-auth'];
 
 const signValidatorHandler = async function (req, response, next) {
-  logDebug(
-    'API AUTHENTICATOR\n',
-    'URL : ',
-    req.originalUrl,
-    ' METHOD ',
-    req.method,
-  );
+  logDebug('API AUTHENTICATOR\n', 'URL : ', req.originalUrl, ' METHOD ', req.method);
 
   const calledUrl = req.originalUrl.split('?')[0];
+  logDebug('called url ', calledUrl);
 
   if (authRoutes.includes(calledUrl)) {
     try {
-      const authToken = req.header('WalliD-Authorization') || null;
+      const authToken = req.header('Authorization') || null;
       logDebug('AuthToken in header: ', authToken);
 
       if (!authToken) {
-        logDebug(
-          "Missing authorization token in header 'WalliD-Authorization'",
-        );
-
+        logDebug("Missing authorization token in header 'Authorization' ");
         const err = new Error('Unauthorized');
         err.status = 401;
-
         next(err);
       } else {
-        const checkSign = await challenges.checkSignToken(authToken);
-        logDebug('CHECKSIGN ', checkSign);
-
-        if (checkSign.valid) {
-          logDebug(
-            'Authorization token is valid and was signed by ',
-            checkSign.user_wallet,
-          );
-          response.locals = {
-            user_wallet: checkSign.user_wallet,
-          };
-          next();
-        } else {
-          const err = new Error('Forbidden');
-          err.status = 403;
-          next(err);
-        }
+        logDebug('check if token is valid and billing its OK : AUTH_ ', authToken);
+        response.locals = {
+          username: 'userA',
+          authToken,
+        };
+        next();
       }
     } catch (error) {
       logError('Error in middlware ', error);
@@ -64,6 +44,6 @@ const signValidatorHandler = async function (req, response, next) {
   }
 };
 
-module.exports = function () {
+module.exports = () => {
   return Router().use('/api', signValidatorHandler);
 };

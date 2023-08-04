@@ -49,6 +49,16 @@ const env = {
     type: 'string',
     required: true,
   },
+  REDIS_URL: {
+    env: 'REDIS_URL',
+    type: 'string',
+    required: true,
+  },
+  USE_REDIS: {
+    env: 'USE_REDIS',
+    type: 'boolean',
+    required: true,
+  },
 };
 
 const loggerEnv = {
