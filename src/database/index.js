@@ -44,10 +44,11 @@ const Database = {
   },
 
   findAndUpdateBillingDay: (query, data, options) => {
-    return Mongo.billingDay.updateOne(data, options)
+    return Mongo.billingDay.updateOne(query, data, options)
   },
-  createBillingLog: (query, data, options) => {
-    return Mongo.billing.updateOne(data, options)
+
+  findAndUpdateBillingLog: (query, data, options) => {
+    return Mongo.billing.updateOne(query, data, options)
   },
 
   findBillingDay: (filter, select, options) => {

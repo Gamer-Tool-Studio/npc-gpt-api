@@ -3,10 +3,16 @@ const Schema = require('mongoose').Schema
 const TotalBillingDaySchema = new Schema(
   {
     accountId: String,
-    totalInputWords: Number,
-    totalOutputWords: Number
+    totalInputWords: {
+      type: Number,
+      default: 1
+    },
+    totalOutputWords: {
+      type: Number,
+      default: 1
+    }
   },
-  { collection: 'billingDay', versionKey: false }
+  { collection: 'billing', versionKey: false }
 )
 
 TotalBillingDaySchema.set('timestamps', true)

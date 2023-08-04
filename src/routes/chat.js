@@ -26,7 +26,7 @@ router.post('/test_billing', async (request, response) => {
 
     response.status(200).json({ inputWords, outputWords })
   } catch (ex) {
-    logError('get todo ', ex)
+    logError('test_billing  ', ex)
     response.status(500).json({ error: ex })
   }
 })
