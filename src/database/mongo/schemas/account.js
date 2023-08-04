@@ -8,7 +8,6 @@ const accountSchema = new Schema(
   },
   { collection: 'abstract', versionKey: false }
 )
-
 accountSchema.set('timestamps', true)
 
 module.exports = accountSchema

@@ -174,6 +174,72 @@ eval("\nconst Logger = __webpack_require__(/*! debug */ 974);\nconst Factory = {
 
 /***/ }),
 
+/***/ 42:
+/*!*******************************!*\
+  !*** ./src/database/index.js ***!
+  \*******************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+eval("\nconst config = __webpack_require__(/*! ~/config */ 944);\nconst startMongo = __webpack_require__(/*! ./mongo */ 162);\nconst { logDebug, logError } = (__webpack_require__(/*! src/core-services/logFunctionFactory */ 268).getLogger)('chat');\nconst startRedis = __webpack_require__(/*! ./redis */ 673);\n//load config of database url from individual strings\nif (!config.databaseURL) {\n    let url = 'mongodb+srv://';\n    url += process.env.DB_USER + ':';\n    url += process.env.DB_PASS + '@';\n    url += process.env.DB_HOST + '/';\n    // url += process.env.DB_PORT + '/';\n    url += process.env.DB_NAME;\n    // url += '?authSource=admin';\n    //url += '?replicaSet=' + process.env.REPL_SET;\n    url += process.env.COMPLEMENT;\n    config.databaseURL = url;\n}\nlogDebug('MONGO URI CONNECTED :  ', config.databaseURL);\nconst Mongo = startMongo(config.databaseURL);\nlet Redis = {};\n// let RedisSubscribe = {};\nif (process.env.USE_REDIS === 'true') {\n    console.log('Use REDIS try to connect : ', process.env.USE_REDIS);\n    Redis = startRedis(config.redisUrl);\n    // RedisSubscribe = startRedis(config.redisUrl)\n}\nconst Database = {\n    createAccount: (data, options) => {\n        return Mongo.account.create(data, options);\n    },\n    findAccount: (filter, select, options) => {\n        return Mongo.socialProof.find(filter, select, options);\n    },\n    createBillingDay: (data, options) => {\n        return Mongo.billingDay.create(data, options);\n    },\n    findBillingDay: (filter, select, options) => {\n        return Mongo.billingDay.find(filter, select, options);\n    },\n    findPendingInvite: (filter, select, options) => {\n        return Mongo.pendingInvites.find(filter, select, options);\n    },\n    deleteOnInvite: (criteria) => {\n        return Mongo.pendingInvites.deleteOne(criteria);\n    },\n    findUsers: (filter, select, options) => {\n        console.log('BD Filter users ', filter);\n        return Mongo.user.find(filter, select, options);\n    },\n    findSignDocument: async (filter, select, options) => {\n        return await Mongo.signDocument.find(filter, select, options);\n    },\n    findQesBilling: async (filter, select, options) => {\n        return await Mongo.qes_billing.find(filter, select, options);\n    },\n    findEnvironment: async (filter, select, options) => {\n        return await Mongo.environment.find(filter, select, options);\n    },\n    findCompanyProfile: async (filter, select, options) => {\n        return await Mongo.company.find(filter, select, options);\n    },\n    updateCompanyProfile: async (criteria, update, options) => {\n        return await Mongo.company.findOneAndUpdate(criteria, update, options);\n    },\n    saveToken: async (key, token, ttl) => {\n        let sTtl = ttl || config.REDIS_AUTH_TTL;\n        let res = await Redis.SETEX(key, sTtl, token);\n        console.log('result after saved redis key ', res);\n    },\n    getToken: async (key) => {\n        console.log('[DATA_REDIS] will get token...');\n        let token = await Redis.get(key);\n        console.log('[DATA_REDIS] returned token ', token);\n        return token;\n    },\n    initKYCData: async (key, idt, reference) => {\n        let res = await Redis.hset(key, 'ref', reference, 'idt', idt, 'status', 'request.pending');\n        let ex = await Redis.expire(key, 1200); //expire after 20 minutes\n        logDebug('[DATA_REDIS] initKYCData result ', res, ' expire ', ex);\n    },\n    updateKYCData: async (key, field, data) => {\n        let res = await Redis.hset(key, field, data);\n        logDebug('[DATA_REDIS] updateKYCData result ', res);\n    },\n    getKYCData: async (key, param) => {\n        let result;\n        if (!param)\n            result = await Redis.hgetall(key);\n        else\n            result = await Redis.hget(key, param);\n        logDebug('[DATA_REDIS] getKYCData result ', result);\n        return result;\n    }\n};\nmodule.exports = Database;\n\n\n//# sourceURL=webpack://secret-gpt-api/./src/database/index.js?");
+
+/***/ }),
+
+/***/ 162:
+/*!*************************************!*\
+  !*** ./src/database/mongo/index.js ***!
+  \*************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+eval("\nconst { logDebug, logError } = (__webpack_require__(/*! src/core-services/logFunctionFactory */ 268).getLogger)('chat');\nconst fs = __webpack_require__(/*! fs */ 358);\nconst path = __webpack_require__(/*! path */ 17);\nconst mongoose = __webpack_require__(/*! mongoose */ 185);\nconst MongoModels = {};\nfunction loadModels() {\n    var path_ = path.resolve('./src/database/mongo/schemas');\n    logDebug('Path : ', path_);\n    // let schema = require(path.resolve(path_, 'ca'))\n    // MongoModels['ca'] = mongoose.model('ca', schema)\n    console.log('OLA ', path.resolve('./schemas/account'));\n    let account = './schemas/account';\n    let billing = './schemas/billing';\n    let billingDay = './schemas/billingDay';\n    MongoModels['account'] = mongoose.model('account', __webpack_require__(318)(`${account}`));\n    MongoModels['billing'] = mongoose.model('billing', __webpack_require__(318)(`${billing}`));\n    MongoModels['billingDay'] = mongoose.model('billingDay', __webpack_require__(318)(`${billingDay}`));\n}\nmodule.exports = function (url) {\n    try {\n        mongoose.connect(url, {\n            useNewUrlParser: true,\n            useUnifiedTopology: true,\n            // useFindAndModify: false,\n            //useCreateIndex: false,\n            connectTimeoutMS: 10000,\n            retryWrites: false\n        });\n        mongoose.connection.on('connected', () => logDebug('Connection to database established'));\n        loadModels();\n        return MongoModels;\n    }\n    catch (error) {\n        logDebug('[DATABASE] ', error);\n    }\n};\n\n\n//# sourceURL=webpack://secret-gpt-api/./src/database/mongo/index.js?");
+
+/***/ }),
+
+/***/ 725:
+/*!***********************************************!*\
+  !*** ./src/database/mongo/schemas/account.js ***!
+  \***********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+eval("\nconst Schema = (__webpack_require__(/*! mongoose */ 185).Schema);\nconst accountSchema = new Schema({\n    accountId: Object,\n    apiSecret: Object,\n    email: String\n}, { collection: 'abstract', versionKey: false });\naccountSchema.set('timestamps', true);\nmodule.exports = accountSchema;\n\n\n//# sourceURL=webpack://secret-gpt-api/./src/database/mongo/schemas/account.js?");
+
+/***/ }),
+
+/***/ 114:
+/*!***********************************************!*\
+  !*** ./src/database/mongo/schemas/billing.js ***!
+  \***********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+eval("\nconst Schema = (__webpack_require__(/*! mongoose */ 185).Schema);\nconst TotalBillingDaySchema = new Schema({\n    accountId: String,\n    totalInputWords: Number,\n    totalOutputWords: Number\n}, { collection: 'billingDay', versionKey: false });\nTotalBillingDaySchema.set('timestamps', true);\nmodule.exports = TotalBillingDaySchema;\n\n\n//# sourceURL=webpack://secret-gpt-api/./src/database/mongo/schemas/billing.js?");
+
+/***/ }),
+
+/***/ 104:
+/*!**************************************************!*\
+  !*** ./src/database/mongo/schemas/billingDay.js ***!
+  \**************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+eval("\nconst Schema = (__webpack_require__(/*! mongoose */ 185).Schema);\nconst BillingDaySchema = new Schema({\n    accountId: String,\n    inputWords: String,\n    outputWorks: Number,\n    key: String\n}, { collection: 'billingDay', versionKey: false });\nBillingDaySchema.set('timestamps', true);\nmodule.exports = BillingDaySchema;\n\n\n//# sourceURL=webpack://secret-gpt-api/./src/database/mongo/schemas/billingDay.js?");
+
+/***/ }),
+
+/***/ 673:
+/*!*************************************!*\
+  !*** ./src/database/redis/index.js ***!
+  \*************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+eval("\nconst { logDebug, logError } = (__webpack_require__(/*! src/core-services/logFunctionFactory */ 268).getLogger)('chat');\nconst redis = __webpack_require__(/*! async-redis */ 454);\nmodule.exports = function (redisUrl) {\n    let redisClient = redis.createClient(redisUrl);\n    redisClient.on('connect', () => logDebug('REDIS connection established ', redisUrl));\n    redisClient.on('end', () => logDebug('REDIS connection closed'));\n    redisClient.on('error', (err) => logDebug('REDIS connection error ', err.message));\n    return redisClient;\n};\n\n\n//# sourceURL=webpack://secret-gpt-api/./src/database/redis/index.js?");
+
+/***/ }),
+
 /***/ 341:
 /*!**********************!*\
   !*** ./src/index.ts ***!
@@ -214,7 +280,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\ncons
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
-eval("\nconst { authLogin, resetApiKey } = __webpack_require__(/*! src/services/auth */ 797);\nconst { logDebug, logError } = (__webpack_require__(/*! src/core-services/logFunctionFactory */ 268).getLogger)('chat');\nconst { Router } = __webpack_require__(/*! express */ 860);\nconst router = Router();\nrouter.post('/gen-auth', async (request, response) => {\n    try {\n        console.log(' **** Auth token route **** ');\n        console.log(' **** locals ', response.locals.username, ' auth token ', response.locals.authToken);\n        response.status(200).json({\n            token: response.locals.authToken,\n            username: response.locals.username\n        });\n    }\n    catch (ex) {\n        logError('get todo ', ex);\n        response.status(500).json({ error: ex });\n    }\n});\nrouter.post('/reset-secret', async (request, response) => {\n    try {\n        console.log(' **** reset-secret **** route ');\n        console.log(' **** locals ', response.locals.username, ' auth token ', response.locals.authToken);\n        response.status(200).json({\n            token: response.locals.authToken,\n            username: response.locals.username\n        });\n    }\n    catch (ex) {\n        logError('get todo ', ex);\n        response.status(500).json({ error: ex });\n    }\n});\nmodule.exports = router;\n\n\n//# sourceURL=webpack://secret-gpt-api/./src/routes/auth.js?");
+eval("\nconst { authLogin, resetApiKey, createAccount } = __webpack_require__(/*! src/services/auth */ 797);\nconst { logDebug, logError } = (__webpack_require__(/*! src/core-services/logFunctionFactory */ 268).getLogger)('chat');\nconst { Router } = __webpack_require__(/*! express */ 860);\nconst router = Router();\nrouter.post('/gen-auth', async (request, response) => {\n    try {\n        console.log(' **** Auth token route **** ');\n        console.log(' **** locals ', response.locals.username, ' auth token ', response.locals.authToken);\n        response.status(200).json({\n            token: response.locals.authToken,\n            username: response.locals.username\n        });\n    }\n    catch (ex) {\n        logError('get todo ', ex);\n        response.status(500).json({ error: ex });\n    }\n});\nrouter.post('/reset-secret', async (request, response) => {\n    try {\n        console.log(' **** reset-secret **** route ');\n        console.log(' **** locals ', response.locals.username, ' auth token ', response.locals.authToken);\n        response.status(200).json({\n            token: response.locals.authToken,\n            username: response.locals.username\n        });\n    }\n    catch (ex) {\n        logError('get todo ', ex);\n        response.status(500).json({ error: ex });\n    }\n});\nrouter.post('/create-account', async (request, response) => {\n    try {\n        console.log(' **** reset-secret **** route ');\n        console.log(' **** locals ', response.locals.username, ' auth token ', response.locals.authToken);\n        let a = await createAccount(request.body);\n        response.status(200).json({ newAccount: a });\n    }\n    catch (ex) {\n        logError('create-account log error ', ex);\n        response.status(500).json({ error: ex });\n    }\n});\nmodule.exports = router;\n\n\n//# sourceURL=webpack://secret-gpt-api/./src/routes/auth.js?");
 
 /***/ }),
 
@@ -225,7 +291,7 @@ eval("\nconst { authLogin, resetApiKey } = __webpack_require__(/*! src/services/
 /***/ ((module, exports, __webpack_require__) => {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst openai_1 = __webpack_require__(/*! ~/services/openai */ 329);\nconst { logDebug, logError } = (__webpack_require__(/*! src/core-services/logFunctionFactory */ 268).getLogger)('chat');\nconst { Router } = __webpack_require__(/*! express */ 860);\nconst router = Router();\nrouter.get('/list-engines', async (request, response) => {\n    try {\n        const engines = await (0, openai_1.listEngines)();\n        response.status(200).json(engines);\n    }\n    catch (ex) {\n        logError('get todo ', ex);\n        response.status(500).json({ error: ex });\n    }\n});\nrouter.post('/send-message', async (request, response) => {\n    const userInput = request.body.text;\n    try {\n        logDebug('send-message request:', userInput);\n        const response = {}; //await createCompletion({ prompt: userInput })\n        logDebug('Response:', response.status, response.statusText, openai_1.createCompletion);\n        const { choices } = await response.json();\n        if (choices && choices.length > 0) {\n            const generatedResponse = choices[0].message.content.trim();\n            response.json({ response: generatedResponse });\n        }\n        else {\n            response.status(500).json({ error: 'No response from the OpenAI API' });\n        }\n    }\n    catch (error) {\n        logError('Error:', error?.message);\n        response.status(500).json({ error: 'An error occurred' });\n    }\n});\nrouter.post('/generate-prompt', async (request, res) => {\n    const characterJson = request.body;\n    try {\n        logDebug('send-message request:', characterJson);\n        const response = await (0, openai_1.generatePrompt)({ characterJson });\n        logDebug('Response:', response);\n        const { prompt } = await response;\n        if (prompt) {\n            res.json({ response: prompt });\n        }\n        else {\n            res.status(500).json({ error: 'No response from the OpenAI API' });\n        }\n    }\n    catch (error) {\n        logError('Error:', error?.message);\n        res.status(500).json({ error: 'An error occurred' });\n    }\n});\nrouter.put('/:id', async (request, response) => {\n    try {\n        const updated = await (0, openai_1.createCompletion)(request.params.id, request.body);\n        response.status(200).json(updated);\n    }\n    catch (ex) {\n        logError('get todo ', ex);\n        response.status(500).json({ error: ex });\n    }\n});\nrouter.delete('/:id', async (request, response) => {\n    try {\n        const del = await (0, openai_1.createCompletion)(request.params.id);\n        response.status(200).json(del);\n    }\n    catch (ex) {\n        logError('get todo ', ex);\n        response.status(500).json({ error: ex });\n    }\n});\nmodule.exports = router;\n\n\n//# sourceURL=webpack://secret-gpt-api/./src/routes/chat.js?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst openai_1 = __webpack_require__(/*! ~/services/openai */ 329);\nconst billing_1 = __webpack_require__(/*! ~/services/billing */ 86);\nconst { logDebug, logError } = (__webpack_require__(/*! src/core-services/logFunctionFactory */ 268).getLogger)('chat');\nconst { Router } = __webpack_require__(/*! express */ 860);\nconst router = Router();\nrouter.get('/list-engines', async (request, response) => {\n    try {\n        const engines = await (0, openai_1.listEngines)();\n        response.status(200).json(engines);\n    }\n    catch (ex) {\n        logError('get todo ', ex);\n        response.status(500).json({ error: ex });\n    }\n});\nrouter.post('/test_billing', async (request, response) => {\n    try {\n        const message = request.body.message;\n        await (0, billing_1.inputBillingEvent)(message);\n        await (0, billing_1.outputBillingEvent)(message);\n        response.status(200).json(engines);\n    }\n    catch (ex) {\n        logError('get todo ', ex);\n        response.status(500).json({ error: ex });\n    }\n});\nrouter.post('/send-message', async (request, response) => {\n    const userInput = request.body.text;\n    try {\n        logDebug('send-message request:', userInput);\n        const response = {}; //await createCompletion({ prompt: userInput })\n        logDebug('Response:', response.status, response.statusText, openai_1.createCompletion);\n        const { choices } = await response.json();\n        if (choices && choices.length > 0) {\n            const generatedResponse = choices[0].message.content.trim();\n            response.json({ response: generatedResponse });\n        }\n        else {\n            response.status(500).json({ error: 'No response from the OpenAI API' });\n        }\n    }\n    catch (error) {\n        logError('Error:', error?.message);\n        response.status(500).json({ error: 'An error occurred' });\n    }\n});\nrouter.post('/generate-prompt', async (request, res) => {\n    const characterJson = request.body;\n    try {\n        logDebug('send-message request:', characterJson);\n        const response = await (0, openai_1.generatePrompt)({ characterJson });\n        logDebug('Response:', response);\n        const { prompt } = await response;\n        if (prompt) {\n            res.json({ response: prompt });\n        }\n        else {\n            res.status(500).json({ error: 'No response from the OpenAI API' });\n        }\n    }\n    catch (error) {\n        logError('Error:', error?.message);\n        res.status(500).json({ error: 'An error occurred' });\n    }\n});\nrouter.put('/:id', async (request, response) => {\n    try {\n        const updated = await (0, openai_1.createCompletion)(request.params.id, request.body);\n        response.status(200).json(updated);\n    }\n    catch (ex) {\n        logError('get todo ', ex);\n        response.status(500).json({ error: ex });\n    }\n});\nrouter.delete('/:id', async (request, response) => {\n    try {\n        const del = await (0, openai_1.createCompletion)(request.params.id);\n        response.status(200).json(del);\n    }\n    catch (ex) {\n        logError('get todo ', ex);\n        response.status(500).json({ error: ex });\n    }\n});\nmodule.exports = router;\n\n\n//# sourceURL=webpack://secret-gpt-api/./src/routes/chat.js?");
 
 /***/ }),
 
@@ -244,10 +310,21 @@ eval("\nconst writeError = (__webpack_require__(/*! ~/core-services/logFunctionF
 /*!******************************!*\
   !*** ./src/services/auth.js ***!
   \******************************/
-/***/ ((module) => {
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
-eval("\n// eslint-disable-next-line arrow-body-style\nconst logError = console.log;\nconst authLogin = async function (data) {\n    console.log('********* authenticator route **********', data);\n    try {\n        return { authToken: '0x13124124343' };\n    }\n    catch (ex) {\n        logError('Error validating data ', ex);\n        throw ex;\n    }\n};\nconst resetApiKey = async function (data) {\n    console.log('********* authenticator route **********', data);\n    try {\n        return { authToken: '0x13124124343' };\n    }\n    catch (ex) {\n        logError('Error validating data ', ex);\n        throw ex;\n    }\n};\nmodule.exports = { authLogin, resetApiKey };\n\n\n//# sourceURL=webpack://secret-gpt-api/./src/services/auth.js?");
+eval("\n// eslint-disable-next-line arrow-body-style\nconst DB = __webpack_require__(/*! src/database */ 42);\nconst logError = console.log;\nconst ADMIN_TOKEN = 'bWFzdGVydmlhbmE6YmVuZmljYSNkaW1hcmlh';\nconst crypto = __webpack_require__(/*! crypto */ 113);\nfunction generateKey(size = 32, format = 'base64') {\n    const buffer = crypto.randomBytes(size);\n    return buffer.toString(format);\n}\nconst authLogin = async function (data) {\n    console.log('********* authenticator route **********', data);\n    try {\n        return { authToken: '0x13124124343' };\n    }\n    catch (ex) {\n        logError('Error validating data ', ex);\n        throw ex;\n    }\n};\nconst createAccount = async function (data) {\n    console.log('********* create account route **********', data);\n    if (!data.email) {\n        throw 'Should supply email account';\n    }\n    try {\n        let newAccount = {\n            email: data.email,\n            apiKey: generateKey(),\n            apiSecret: generateKey(64)\n        };\n        let newAccountCreated = await DB.createAccount(newAccount);\n        return { newAccountCreated };\n    }\n    catch (ex) {\n        logError('Error validating data ', ex);\n        throw ex;\n    }\n};\nconst listAccount = async function (data) {\n    console.log('********* listAccount route **********', data);\n    try {\n        let account = {};\n        return { authToken: '0x13124124343' };\n    }\n    catch (ex) {\n        logError('Error validating data ', ex);\n        throw ex;\n    }\n};\nconst resetApiKey = async function (data) {\n    console.log('********* authenticator route **********', data);\n    try {\n        return { authToken: '0x13124124343' };\n    }\n    catch (ex) {\n        logError('Error validating data ', ex);\n        throw ex;\n    }\n};\nmodule.exports = { authLogin, resetApiKey, createAccount };\n\n\n//# sourceURL=webpack://secret-gpt-api/./src/services/auth.js?");
+
+/***/ }),
+
+/***/ 86:
+/*!*********************************!*\
+  !*** ./src/services/billing.js ***!
+  \*********************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+eval("\n// eslint-disable-next-line arrow-body-style\nconst logError = console.log;\nconst DB = __webpack_require__(/*! src/database */ 42);\nfunction countWords(str) {\n    return str.trim().split(/\\s+/).length;\n}\n/**\n * From the input words, count words\n * - add entry to billing day input\n * - increase total billing input\n */\nconst inputBillingEvent = async function (inputData) {\n    data = 'ola este e só para testar, vamos ver quantas palavras é que isto manja! ';\n    console.log('********* inputBillingEvent service **********', data);\n    try {\n        return { authToken: '0x13124124343' };\n    }\n    catch (ex) {\n        logError('Error validating data ', ex);\n        throw ex;\n    }\n};\n/**\n * From the output words, count words\n * - add entry to billing day input\n * - increase total billing input\n */\nconst outputBillingEvent = async function (outputData) {\n    data = 'ola este e só para testar, vamos ver quantas palavras é que isto manja!';\n    console.log('********* ouputBilling service **********', data);\n    try {\n        return { authToken: '0x13124124343' };\n    }\n    catch (ex) {\n        logError('Error validating data ', ex);\n        throw ex;\n    }\n};\nmodule.exports = { inputBillingEvent, outputBillingEvent };\n\n\n//# sourceURL=webpack://secret-gpt-api/./src/services/billing.js?");
 
 /***/ }),
 
@@ -259,6 +336,16 @@ eval("\n// eslint-disable-next-line arrow-body-style\nconst logError = console.l
 
 "use strict";
 eval("\nvar __importDefault = (this && this.__importDefault) || function (mod) {\n    return (mod && mod.__esModule) ? mod : { \"default\": mod };\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst openai_1 = __importDefault(__webpack_require__(/*! src/lib/openai */ 622));\nconst characterBuilder_1 = __webpack_require__(/*! ~/lib/characterBuilder */ 751);\nconst generatePrompt = async ({ characterJson }) => {\n    const prompt = (0, characterBuilder_1.promptTemplate)(characterJson);\n    return { prompt };\n};\nmodule.exports = {\n    createCompletion: async ({ prompt }) => {\n        const response = await openai_1.default.createCompletion({\n            model: 'text-davinci-003',\n            prompt,\n            max_tokens: 7,\n            temperature: 0\n        });\n        return response.data;\n    },\n    listEngines: async () => {\n        const response = await openai_1.default.listEngines();\n        return response.data;\n    },\n    generatePrompt\n};\n\n\n//# sourceURL=webpack://secret-gpt-api/./src/services/openai.ts?");
+
+/***/ }),
+
+/***/ 318:
+/*!***************************************!*\
+  !*** ./src/database/mongo/ sync ^.*$ ***!
+  \***************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+eval("var map = {\n\t\".\": 162,\n\t\"./\": 162,\n\t\"./index\": 162,\n\t\"./index.js\": 162,\n\t\"./schemas/account\": 725,\n\t\"./schemas/account.js\": 725,\n\t\"./schemas/billing\": 114,\n\t\"./schemas/billing.js\": 114,\n\t\"./schemas/billingDay\": 104,\n\t\"./schemas/billingDay.js\": 104\n};\n\n\nfunction webpackContext(req) {\n\tvar id = webpackContextResolve(req);\n\treturn __webpack_require__(id);\n}\nfunction webpackContextResolve(req) {\n\tif(!__webpack_require__.o(map, req)) {\n\t\tvar e = new Error(\"Cannot find module '\" + req + \"'\");\n\t\te.code = 'MODULE_NOT_FOUND';\n\t\tthrow e;\n\t}\n\treturn map[req];\n}\nwebpackContext.keys = function webpackContextKeys() {\n\treturn Object.keys(map);\n};\nwebpackContext.resolve = webpackContextResolve;\nmodule.exports = webpackContext;\nwebpackContext.id = 318;\n\n//# sourceURL=webpack://secret-gpt-api/./src/database/mongo/_sync_^.*$?");
 
 /***/ }),
 
@@ -280,6 +367,17 @@ eval("var map = {\n\t\"./\": 18,\n\t\"./auth\": 567,\n\t\"./auth.js\": 567,\n\t\
 
 "use strict";
 module.exports = require("12factor-config");
+
+/***/ }),
+
+/***/ 454:
+/*!******************************!*\
+  !*** external "async-redis" ***!
+  \******************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("async-redis");
 
 /***/ }),
 
@@ -338,6 +436,17 @@ module.exports = require("express-session");
 
 /***/ }),
 
+/***/ 185:
+/*!***************************!*\
+  !*** external "mongoose" ***!
+  \***************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("mongoose");
+
+/***/ }),
+
 /***/ 118:
 /*!*************************!*\
   !*** external "openai" ***!
@@ -371,6 +480,17 @@ module.exports = require("swagger-ui-express");
 
 /***/ }),
 
+/***/ 113:
+/*!*************************!*\
+  !*** external "crypto" ***!
+  \*************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("crypto");
+
+/***/ }),
+
 /***/ 358:
 /*!*********************!*\
   !*** external "fs" ***!
@@ -400,7 +520,7 @@ module.exports = require("path");
 /***/ ((module) => {
 
 "use strict";
-eval("module.exports = JSON.parse('{\"name\":\"secret-gpt-api\",\"version\":\"1.0.0\",\"description\":\"\",\"main\":\"./src/index.ts\",\"scripts\":{\"start\":\"npm run serve\",\"serve\":\"webpack --watch --env mode=development --config webpack.config.ts\",\"clean:dev\":\"rimraf build\",\"clean:prod\":\"rimraf dist\",\"build\":\"webpack --mode production --config webpack.config.ts\",\"dev\":\"nodemon build/index.js --watch build\",\"prod\":\"nodemon dist/index.js --watch dist\",\"test\":\"echo \\\\\"Error: no test specified\\\\\" && exit 1\",\"lint\":\"eslint\"},\"files\":[\"dist/**/*\"],\"keywords\":[],\"author\":\"\",\"license\":\"ISC\",\"devDependencies\":{\"@babel/core\":\"^7.22.9\",\"@babel/preset-env\":\"^7.22.9\",\"@babel/preset-typescript\":\"^7.22.5\",\"@types/cookie-parser\":\"^1.4.3\",\"@types/cors\":\"^2.8.13\",\"@types/express\":\"^4.17.17\",\"@types/node\":\"^20.4.2\",\"@types/webpack\":\"^5.28.1\",\"@types/webpack-node-externals\":\"^3.0.0\",\"@typescript-eslint/eslint-plugin\":\"^6.1.0\",\"@typescript-eslint/parser\":\"^6.1.0\",\"12factor-config\":\"^2.0.0\",\"babel-loader\":\"^9.1.3\",\"dotenv\":\"^16.3.1\",\"eslint\":\"^8.45.0\",\"eslint-config-airbnb-base\":\"^15.0.0\",\"eslint-config-standard\":\"^17.1.0\",\"eslint-plugin-import\":\"^2.27.5\",\"eslint-plugin-node\":\"^11.1.0\",\"eslint-plugin-promise\":\"^6.1.1\",\"eslint-plugin-standard\":\"^5.0.0\",\"express-session\":\"^1.17.3\",\"nodemon\":\"^3.0.1\",\"openai\":\"^3.3.0\",\"prettier\":\"^3.0.0\",\"rimraf\":\"^5.0.1\",\"swagger-jsdoc\":\"^6.2.8\",\"swagger-ui-express\":\"^5.0.0\",\"ts-loader\":\"^9.4.4\",\"ts-node\":\"^10.9.1\",\"typescript\":\"^5.1.6\",\"webpack\":\"^5.88.2\",\"webpack-cli\":\"^5.1.4\",\"webpack-dev-server\":\"^4.15.1\",\"webpack-node-externals\":\"^3.0.0\",\"webpack-shell-plugin-next\":\"^2.3.1\"},\"dependencies\":{\"cookie-parser\":\"^1.4.6\",\"cors\":\"^2.8.5\",\"debug\":\"^4.3.4\",\"eslint-config-airbnb\":\"^19.0.4\",\"express\":\"^4.18.2\"}}');\n\n//# sourceURL=webpack://secret-gpt-api/./package.json?");
+eval("module.exports = JSON.parse('{\"name\":\"secret-gpt-api\",\"version\":\"1.0.0\",\"description\":\"\",\"main\":\"./src/index.ts\",\"scripts\":{\"start\":\"npm run serve\",\"serve\":\"webpack --watch --env mode=development --config webpack.config.ts\",\"clean:dev\":\"rimraf build\",\"clean:prod\":\"rimraf dist\",\"build\":\"webpack --mode production --config webpack.config.ts\",\"dev\":\"nodemon build/index.js --watch build\",\"prod\":\"nodemon dist/index.js --watch dist\",\"test\":\"echo \\\\\"Error: no test specified\\\\\" && exit 1\",\"lint\":\"eslint\"},\"files\":[\"dist/**/*\"],\"keywords\":[],\"author\":\"\",\"license\":\"ISC\",\"devDependencies\":{\"@babel/core\":\"^7.22.9\",\"@babel/preset-env\":\"^7.22.9\",\"@babel/preset-typescript\":\"^7.22.5\",\"@types/cookie-parser\":\"^1.4.3\",\"@types/cors\":\"^2.8.13\",\"@types/express\":\"^4.17.17\",\"@types/node\":\"^20.4.2\",\"@types/webpack\":\"^5.28.1\",\"@types/webpack-node-externals\":\"^3.0.0\",\"@typescript-eslint/eslint-plugin\":\"^6.1.0\",\"@typescript-eslint/parser\":\"^6.1.0\",\"12factor-config\":\"^2.0.0\",\"babel-loader\":\"^9.1.3\",\"dotenv\":\"^16.3.1\",\"eslint\":\"^8.45.0\",\"eslint-config-airbnb-base\":\"^15.0.0\",\"eslint-config-standard\":\"^17.1.0\",\"eslint-plugin-import\":\"^2.27.5\",\"eslint-plugin-node\":\"^11.1.0\",\"eslint-plugin-promise\":\"^6.1.1\",\"eslint-plugin-standard\":\"^5.0.0\",\"express-session\":\"^1.17.3\",\"nodemon\":\"^3.0.1\",\"openai\":\"^3.3.0\",\"prettier\":\"^3.0.0\",\"rimraf\":\"^5.0.1\",\"swagger-jsdoc\":\"^6.2.8\",\"swagger-ui-express\":\"^5.0.0\",\"ts-loader\":\"^9.4.4\",\"ts-node\":\"^10.9.1\",\"typescript\":\"^5.1.6\",\"webpack\":\"^5.88.2\",\"webpack-cli\":\"^5.1.4\",\"webpack-dev-server\":\"^4.15.1\",\"webpack-node-externals\":\"^3.0.0\",\"webpack-shell-plugin-next\":\"^2.3.1\"},\"dependencies\":{\"async-redis\":\"^2.0.0\",\"cookie-parser\":\"^1.4.6\",\"cors\":\"^2.8.5\",\"debug\":\"^4.3.4\",\"eslint-config-airbnb\":\"^19.0.4\",\"express\":\"^4.18.2\",\"mongoose\":\"^7.4.1\"}}');\n\n//# sourceURL=webpack://secret-gpt-api/./package.json?");
 
 /***/ })
 

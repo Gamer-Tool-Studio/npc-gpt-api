@@ -1,4 +1,4 @@
-const { authLogin, resetApiKey } = require('src/services/auth')
+const { authLogin, resetApiKey, createAccount } = require('src/services/auth')
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('chat')
 
 const { Router } = require('express')
@@ -33,6 +33,20 @@ router.post('/reset-secret', async (request, response) => {
     })
   } catch (ex) {
     logError('get todo ', ex)
+    response.status(500).json({ error: ex })
+  }
+})
+
+router.post('/create-account', async (request, response) => {
+  try {
+    console.log(' **** reset-secret **** route ')
+
+    console.log(' **** locals ', response.locals.username, ' auth token ', response.locals.authToken)
+
+    let a = await createAccount(request.body)
+    response.status(200).json({ newAccount: a })
+  } catch (ex) {
+    logError('create-account log error ', ex)
     response.status(500).json({ error: ex })
   }
 })

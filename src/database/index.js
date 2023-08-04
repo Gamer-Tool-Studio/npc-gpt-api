@@ -1,5 +1,6 @@
-const config = require('$config')
-const logDebug = require('$core-services/logFunctionFactory').getDebugLogger()
+const config = require('~/config')
+const startMongo = require('./mongo')
+const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('chat')
 const startRedis = require('./redis')
 
 //load config of database url from individual strings
@@ -28,6 +29,30 @@ if (process.env.USE_REDIS === 'true') {
 }
 
 const Database = {
+  createAccount: (data, options) => {
+    return Mongo.account.create(data, options)
+  },
+  findAccount: (filter, select, options) => {
+    return Mongo.socialProof.find(filter, select, options)
+  },
+  createBillingDay: (data, options) => {
+    return Mongo.billingDay.create(data, options)
+  },
+  findBillingDay: (filter, select, options) => {
+    return Mongo.billingDay.find(filter, select, options)
+  },
+
+  findPendingInvite: (filter, select, options) => {
+    return Mongo.pendingInvites.find(filter, select, options)
+  },
+  deleteOnInvite: (criteria) => {
+    return Mongo.pendingInvites.deleteOne(criteria)
+  },
+  findUsers: (filter, select, options) => {
+    console.log('BD Filter users ', filter)
+    return Mongo.user.find(filter, select, options)
+  },
+
   findSignDocument: async (filter, select, options) => {
     return await Mongo.signDocument.find(filter, select, options)
   },

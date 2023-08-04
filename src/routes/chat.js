@@ -1,4 +1,5 @@
 import { listEngines, createCompletion, generatePrompt } from '~/services/openai'
+import { inputBillingEvent, outputBillingEvent } from '~/services/billing'
 
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('chat')
 
@@ -9,6 +10,20 @@ const router = Router()
 router.get('/list-engines', async (request, response) => {
   try {
     const engines = await listEngines()
+    response.status(200).json(engines)
+  } catch (ex) {
+    logError('get todo ', ex)
+    response.status(500).json({ error: ex })
+  }
+})
+
+router.post('/test_billing', async (request, response) => {
+  try {
+    const message = request.body.message
+
+    await inputBillingEvent(message)
+    await outputBillingEvent(message)
+
     response.status(200).json(engines)
   } catch (ex) {
     logError('get todo ', ex)

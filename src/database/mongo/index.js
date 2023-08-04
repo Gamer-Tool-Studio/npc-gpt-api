@@ -1,4 +1,4 @@
-const log = require('$core-services/logFunctionFactory').getLogger()
+const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('chat')
 const fs = require('fs')
 const path = require('path')
 const mongoose = require('mongoose')
@@ -7,16 +7,20 @@ const MongoModels = {}
 
 function loadModels() {
   var path_ = path.resolve('./src/database/mongo/schemas')
+  logDebug('Path : ', path_)
 
-  fs.readdirSync(path_).forEach(async (file) => {
-    try {
-      let filename = path.basename(file, '.js')
-      let schema = require(path.resolve(path_, file))
-      MongoModels[filename] = mongoose.model(filename, schema)
-    } catch (err) {
-      log.error('Error loading route', file, ' error,', err)
-    }
-  })
+  // let schema = require(path.resolve(path_, 'ca'))
+  // MongoModels['ca'] = mongoose.model('ca', schema)
+
+  console.log('OLA ', path.resolve('./schemas/account'))
+
+  let account = './schemas/account'
+  let billing = './schemas/billing'
+  let billingDay = './schemas/billingDay'
+
+  MongoModels['account'] = mongoose.model('account', require(`${account}`))
+  MongoModels['billing'] = mongoose.model('billing', require(`${billing}`))
+  MongoModels['billingDay'] = mongoose.model('billingDay', require(`${billingDay}`))
 }
 
 module.exports = function (url) {
@@ -24,16 +28,16 @@ module.exports = function (url) {
     mongoose.connect(url, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      useFindAndModify: false,
-      useCreateIndex: true,
+      // useFindAndModify: false,
+      //useCreateIndex: false,
       connectTimeoutMS: 10000,
       retryWrites: false
     })
 
-    mongoose.connection.on('connected', () => log.info('Connection to database established'))
+    mongoose.connection.on('connected', () => logDebug('Connection to database established'))
     loadModels()
     return MongoModels
   } catch (error) {
-    log.error('[DATABASE] ', error)
+    logDebug('[DATABASE] ', error)
   }
 }

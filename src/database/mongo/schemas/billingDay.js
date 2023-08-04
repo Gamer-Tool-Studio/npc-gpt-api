@@ -4,7 +4,8 @@ const BillingDaySchema = new Schema(
   {
     accountId: String,
     inputWords: String,
-    outputWorks: Number
+    outputWorks: Number,
+    key: String
   },
   { collection: 'billingDay', versionKey: false }
 )
