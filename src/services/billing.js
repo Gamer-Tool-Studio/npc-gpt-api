@@ -2,6 +2,11 @@
 // eslint-disable-next-line arrow-body-style
 
 const logError = console.log
+const DB = require('src/database')
+
+function countWords(str) {
+  return str.trim().split(/\s+/).length
+}
 
 /**
  * From the input words, count words
@@ -9,6 +14,7 @@ const logError = console.log
  * - increase total billing input
  */
 const inputBillingEvent = async function (inputData) {
+  data = 'ola este e só para testar, vamos ver quantas palavras é que isto manja! '
   console.log('********* inputBillingEvent service **********', data)
 
   try {
@@ -25,6 +31,8 @@ const inputBillingEvent = async function (inputData) {
  * - increase total billing input
  */
 const outputBillingEvent = async function (outputData) {
+  data = 'ola este e só para testar, vamos ver quantas palavras é que isto manja!'
+
   console.log('********* ouputBilling service **********', data)
 
   try {
