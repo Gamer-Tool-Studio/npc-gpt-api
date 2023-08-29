@@ -1,79 +1,84 @@
-'use strict'
-// eslint-disable-next-line arrow-body-style
+const DB = require('src/database');
+const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('auth-service');
 
-const DB = require('src/database')
-const logError = console.log
-const ADMIN_TOKEN = 'bWFzdGVydmlhbmE6YmVuZmljYSNkaW1hcmlh'
-const crypto = require('crypto')
+// const ADMIN_TOKEN = 'bWFzdGVydmlhbmE6YmVuZmljYSNkaW1hcmlh';
+const crypto = require('crypto');
 
 function generateKey(size = 32, format = 'base64') {
-  const buffer = crypto.randomBytes(size)
-  return buffer.toString(format)
+  const buffer = crypto.randomBytes(size);
+  return buffer.toString(format);
 }
 
-const authLogin = async function (data) {
-  console.log('********* authenticator route **********', data)
+const authLogin = async (data) => {
+  logDebug('********* authenticator route **********', data);
 
-  let token = generateKey(12)
-  let newBody = {
+  const token = generateKey(12);
+  const newBody = {
     accountId: data.accountId,
-    sessionId: token
-  }
-  let createdSession = await DB.createSession(newBody)
-  console.log('created session id ', createdSession)
+    sessionId: token,
+  };
+  const createdSession = await DB.createSession(newBody);
+  logDebug('created session id ', createdSession);
 
   try {
-    return { authToken: token }
+    return { authToken: token };
   } catch (ex) {
-    logError('Error validating data ', ex)
-    throw ex
+    logError('Error validating data ', ex);
+    throw ex;
   }
-}
+};
 
-const createAccount = async function (data) {
-  console.log('********* create account route **********', data)
+const createAccount = async (data) => {
+  logDebug('********* create account route **********', data);
 
   if (!data.email) {
-    throw 'Should supply email account'
+    throw new Error('Should supply email account');
   }
 
   try {
-    let newAccount = {
+    const newAccount = {
       email: data.email,
       apiKey: generateKey(),
-      apiSecret: generateKey(64)
-    }
+      apiSecret: generateKey(64),
+    };
 
-    let newAccountCreated = await DB.createAccount(newAccount)
+    const newAccountCreated = await DB.createAccount(newAccount);
 
-    return { newAccountCreated }
+    return { newAccountCreated };
   } catch (ex) {
-    logError('Error validating data ', ex)
-    throw ex
+    logError('Error validating data ', ex);
+    throw ex;
   }
-}
+};
 
-const listAccount = async function (data) {
-  console.log('********* listAccount route **********', data)
+const listAccount = async (data) => {
+  logDebug('********* listAccount route **********', data);
 
   try {
-    let account = {}
-    return { authToken: '0x13124124343' }
+    const account = { authToken: '0x13124124343' };
+    return account;
+    // eslint-disable-next-line no-unreachable
   } catch (ex) {
-    logError('Error validating data ', ex)
-    throw ex
+    logError('Error validating data ', ex);
+    throw ex;
   }
-}
+};
 
-const resetApiKey = async function (data) {
-  console.log('********* authenticator route **********', data)
+const resetApiKey = async (data) => {
+  logDebug('********* authenticator route **********', data);
 
   try {
-    return { authToken: '0x13124124343' }
+    return { authToken: '0x13124124343' };
+    // eslint-disable-next-line no-unreachable
   } catch (ex) {
-    logError('Error validating data ', ex)
-    throw ex
+    logError('Error validating data ', ex);
+    throw ex;
   }
-}
+};
 
-module.exports = { authLogin, resetApiKey, createAccount }
+module.exports = {
+  authLogin,
+  resetApiKey,
+  createAccount,
+  listAccount,
+};
