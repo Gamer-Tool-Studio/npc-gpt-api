@@ -5,7 +5,7 @@ export function hasSameProperties<T extends object>(obj: T, keys: Array<keyof T>
   });
 }
 export function isArrayOf<T extends object>(arr: Array<T>, keys: Array<keyof T>): boolean {
-  return arr.every((element) => hasSameProperties<T>(element, keys));
+  return Array.isArray(arr) && arr.length > 0 && arr.every((element) => hasSameProperties<T>(element, keys));
 }
 
 export const isInstanceOf = <T>(ctor: { new (...args: any): T }) => {

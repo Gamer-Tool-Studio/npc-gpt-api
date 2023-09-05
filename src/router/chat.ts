@@ -1,11 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { listEngines, createCompletion, generatePrompt } from '~/services/openai';
-import { getCharacterJson } from 'src/services/database';
+// import { getCharacterJson } from 'src/services/database';
 import parameterValidator from 'src/core-services/parameterValidator';
 import { characterScriptBuilder } from 'src/lib/characterBuilder';
 import { isArrayOf } from 'src/lib/util';
 import { ChatCompletionRequestMessage } from 'openai';
 import { ChatCompletionRequestMessageClass } from 'src/types/openai.types';
+import { inputBillingEvent } from 'src/services/billing';
 
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('chat');
 
@@ -22,11 +23,11 @@ router.get('/list-engines', async (req: Request, res: Response) => {
 });
 
 router.post('/send-message', async (req: Request, res: Response) => {
-  const params = ['userInput', 'characterId', 'playerId', 'currentHistory'];
+  const params = ['userInput', 'currentHistory'];
   try {
     parameterValidator(req.body, params);
 
-    const { characterId, playerId, userInput } = req.body;
+    const { userInput } = req.body;
     let { currentHistory } = req.body as { currentHistory: Array<ChatCompletionRequestMessage> };
 
     // TODO: when does the character is initiated
@@ -34,13 +35,17 @@ router.post('/send-message', async (req: Request, res: Response) => {
     // TODO: get message from redis to get the character history
     logDebug('send-message userInput:', userInput);
 
+    const billing = await inputBillingEvent({ messageIn: userInput });
+    logDebug('send-message inputBillingEvent res:', billing);
+
     // eslint-disable-next-line @typescript-eslint/naming-convention, object-curly-newline
 
     if (!isArrayOf<ChatCompletionRequestMessage>(currentHistory, ['role', 'content', 'name', 'function_call'])) {
       logDebug('create new history for character');
+      const { characterContext } = req.body;
 
-      const { characterJson } = await getCharacterJson({ characterId, playerId });
-      const character = characterScriptBuilder(characterJson);
+      // const { characterJson } = await getCharacterJson(characterContext);
+      const character = characterScriptBuilder(characterContext);
       currentHistory = [new ChatCompletionRequestMessageClass('system', character)];
       // is this correct, maybe we should initiate a new history instead of error
       // res.status(500).json({ error: `No History for this ${characterId} and ${playerId}` });

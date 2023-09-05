@@ -13,8 +13,8 @@ type GetCharacterJson = ({
   playerId: string;
 }) => Promise<Record<string, CharacterType>>;
 
-const getCharacterJson: GetCharacterJson = async ({ characterId, playerId }) => {
-  logDebug(characterId, playerId);
+const getCharacterJson: GetCharacterJson = async (a) => {
+  logDebug(a);
   return {
     characterJson: {
       name: 'John',
