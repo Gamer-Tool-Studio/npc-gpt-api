@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const mongoModels: Record<string, unknown> = {};
 
 function loadModels() {
-  const pathSchemas = path.resolve('./src/database/mongo/');
+  const pathSchemas = path.resolve('./src/database/mongo/schemas/');
 
   logDebug('pathSchemas : ', pathSchemas);
 
@@ -24,7 +24,7 @@ function loadModels() {
     try {
       const schema = file.slice(0, file.length - 3);
       // eslint-disable-next-line import/no-dynamic-require, global-require
-      const schemaFile = await require(`./${file}`).default;
+      const schemaFile = await require(`./schemas/${file}`);
 
       mongoModels[schema] = mongoose.model(schema, schemaFile);
       // eslint-disable-next-line no-console
@@ -36,17 +36,17 @@ function loadModels() {
 
 export = (url: string) => {
   try {
-    // mongoose.connect(url, {
-    //   useNewUrlParser: true,
-    //   useUnifiedTopology: true,
-    //   // useFindAndModify: false,
-    //   // useCreateIndex: false,
-    //   connectTimeoutMS: 10000,
-    //   retryWrites: false,
-    // });
+    mongoose.connect(url, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      // useFindAndModify: false,
+      // useCreateIndex: false,
+      connectTimeoutMS: 10000,
+      retryWrites: false,
+    });
     logDebug('pathSchemas url : ', url);
 
-    // mongoose.connection.on('connected', () => logDebug('Connection to database established'));
+    mongoose.connection.on('connected', () => logDebug('Connection to database established'));
     loadModels();
     return mongoModels;
   } catch (error) {
