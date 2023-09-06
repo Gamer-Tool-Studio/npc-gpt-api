@@ -45,7 +45,7 @@ function joinWithCommasAnd(array: string[]): string {
 const buildPersonality = (personality: CharacterType['personality']): string => {
   const personalityString = `Your personality is ${joinWithCommasAnd(personality.traits)}`;
 
-  return `${personalityString}. Also you speak in ${getIndefiniteArticle(personality.dialogueStyle)} ${
+  return `${personalityString}.You speak in ${getIndefiniteArticle(personality.dialogueStyle)} ${
     personality.dialogueStyle
   } manner.`;
 };
@@ -54,25 +54,26 @@ const buildBackgroundStory = (backgroundStory: CharacterType['background story']
   return `Your background story is: ${backgroundStory}.`;
 };
 const buildGameKnowledge = (gameKnowledge: CharacterType['game knowledge']): string => {
-  return `Your knowledge about the game events is that: ${gameKnowledge}. You will only talk about these game events when questioned and reply to the extent to your of your knowledge of those events.`;
+  return `Your knowledge about this RPG game events is that: ${gameKnowledge}. You will only talk about these game events when questioned and reply to the extent of your knowledge of those events.`;
 };
 const buildInterests = (interests: CharacterType['interests']): string => {
-  return `Besides game events you are only able to talk about your interests and according to your knowledge score. From 0 to 10, with 0 being not interested and 10 being very interested. Your interests are ${joinWithCommasAnd(
+  return `Besides game events you are only able to talk about your interests and according to your knowledge score. From 0 to 10, with 0 being oblivious and 10 being an expert. Your interests are ${joinWithCommasAnd(
     Object.entries(interests).map(([i, v]) => `${i}  with a  knowledge score of ${v}/10`),
   )}.`;
 };
 const buildSupportiveness = (supportiveness: CharacterType['supportiveness']): string => {
-  return `From 0 to 10, with 0 being not helpful at all and 10 being very helpful. Your level of support is ${supportiveness}.`;
+  return `Your level of support towards the player is ${supportiveness} of 10.`;
 };
 
 export const characterScriptBuilder = (character: CharacterType) => {
-  return `You are ${character.name}, a character of a RPG game, you are ${character.age} years old. ${buildPersonality(
+  return `Role play as ${character.name}, a character of a RPG game, you are ${character.age} years old. ${buildPersonality(
     character.personality,
   )} ${buildBackgroundStory(character['background story'])} ${buildGameKnowledge(
     character['game knowledge'],
   )} ${buildInterests(character.interests)} ${buildSupportiveness(
     character.supportiveness,
-  )} You are only able to talk about your background story and you only know stuff about your interests and nothing else! Wait for my prompt question to start answering with short and concise replies with no more than 40 words.`;
+  )} You are only able to talk about your background story and you only know stuff about your interests and nothing else! Answer 
+  the following player prompt according to the scope of their question only in less than 400 words:.`;
 };
 
 export const todo = () => {};
