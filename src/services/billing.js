@@ -1,10 +1,12 @@
 // eslint-disable-next-line arrow-body-style
 
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('billing-service');
+const { encode } = require('gpt-3-encoder');
 const DB = require('src/database');
 
 function countWords(str) {
-  return str.trim().split(/\s+/).length;
+  // return str.trim().split(/\s+/).length;
+  return encode(str).length;
 }
 
 /**
@@ -17,7 +19,7 @@ const inputBillingEvent = async (inputData) => {
     inputData.messageIn || 'ola este e só para testar, vamos ver quantas palavras é que isto manja! ',
   );
 
-  logDebug('********* inputBillingEvent service **********', inputData);
+  logDebug('********* inputBillingEvent service **********', inputData.messageIn);
   logDebug('Total Words #', wordsCount);
 
   const today = new Date();
@@ -32,7 +34,6 @@ const inputBillingEvent = async (inputData) => {
   };
   const options = { upsert: true };
   const result = await DB.findAndUpdateBillingLog({ accountId: inputData.accountId }, updateBody, options);
-
   // increment billing with day key
   const billingDayKey = await DB.findAndUpdateBillingDay(
     { key, accountId: inputData.accountId },
