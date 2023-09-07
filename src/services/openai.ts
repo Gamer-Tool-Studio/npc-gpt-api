@@ -8,17 +8,17 @@ import { ChatCompletionRequestMessageClass } from 'src/types/openai.types';
 // type GeneratePromptRes = Record<string, string>;
 type GeneratePromptReq = ({
   userInput,
-  currentHistory,
+  chatHistory,
 }: {
   userInput: string;
-  currentHistory: Array<ChatCompletionRequestMessage>;
+  chatHistory: Array<ChatCompletionRequestMessage>;
 }) => Promise<Record<string, Array<ChatCompletionRequestMessage>>>;
 
-const generatePrompt: GeneratePromptReq = async ({ userInput, currentHistory }) => {
+const generatePrompt: GeneratePromptReq = async ({ userInput, chatHistory }) => {
   // const character = characterScriptBuilder(characterJson);
 
   const messages = [
-    ...currentHistory,
+    ...chatHistory,
     new ChatCompletionRequestMessageClass('user', userInput),
   ] as Array<ChatCompletionRequestMessage>;
 
@@ -34,8 +34,8 @@ const createCompletion = async ({ messages }: { messages: Array<ChatCompletionRe
   // const response = await openai.createChatCompletion({
   //   model: 'text-davinci-003',
   //   messages,
-  //   max_tokens: 7,
-  //   temperature: 0,
+  //   max_tokens: 60,
+  //   temperature: 0.5,
   // });
 
   // return response.data;
