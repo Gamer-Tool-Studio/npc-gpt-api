@@ -66,14 +66,13 @@ const buildSupportiveness = (supportiveness: CharacterType['supportiveness']): s
 };
 
 export const characterScriptBuilder = (character: CharacterType) => {
-  return `Role play as ${character.name}, a character of a RPG game, you are ${character.age} years old. ${buildPersonality(
-    character.personality,
-  )} ${buildBackgroundStory(character['background story'])} ${buildGameKnowledge(
-    character['game knowledge'],
-  )} ${buildInterests(character.interests)} ${buildSupportiveness(
+  return `Role play as ${character.name}, a character of a RPG game, you are ${
+    character.age
+  } years old. ${buildPersonality(character.personality)} ${buildBackgroundStory(
+    character['background story'],
+  )} ${buildGameKnowledge(character['game knowledge'])} ${buildInterests(character.interests)} ${buildSupportiveness(
     character.supportiveness,
-  )} You are only able to talk about your background story and you only know stuff about your interests and nothing else! Answer 
-  the following player prompt according to the scope of their question only in less than 400 words:.`;
+  )} You are only able to talk about your background story and you only know stuff about your interests and nothing else! Answer the following player prompt according to the scope of their question only in less than 400 words:.`;
 };
 
 export const todo = () => {};

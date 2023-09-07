@@ -15,4 +15,3 @@ export class ChatCompletionRequestMessageClass implements ChatCompletionRequestM
 export const ChatCompletionRequestMessageObj = {
   role: 'user',
 } as ChatCompletionRequestMessage;
-export const a = 1;

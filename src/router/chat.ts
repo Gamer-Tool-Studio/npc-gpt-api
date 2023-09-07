@@ -23,12 +23,12 @@ router.get('/list-engines', async (req: Request, res: Response) => {
 });
 
 router.post('/send-message', async (req: Request, res: Response) => {
-  const params = ['userInput', 'currentHistory'];
+  const params = ['userInput', 'chatHistory'];
   try {
     parameterValidator(req.body, params);
 
     const { userInput } = req.body;
-    let { currentHistory } = req.body as { currentHistory: Array<ChatCompletionRequestMessage> };
+    let { chatHistory } = req.body as { chatHistory: Array<ChatCompletionRequestMessage> };
 
     // TODO: when does the character is initiated
 
@@ -40,18 +40,22 @@ router.post('/send-message', async (req: Request, res: Response) => {
 
     // eslint-disable-next-line @typescript-eslint/naming-convention, object-curly-newline
 
-    if (!isArrayOf<ChatCompletionRequestMessage>(currentHistory, ['role', 'content', 'name', 'function_call'])) {
-      logDebug('create new history for character');
+    if (!isArrayOf<ChatCompletionRequestMessage>(chatHistory, ['role', 'content', 'name', 'function_call'])) {
       const { characterContext } = req.body;
+      logDebug('create new history for character', characterContext);
+
+      if (!characterContext) {
+        throw new Error('A characterContext object is required');
+      }
 
       // const { characterJson } = await getCharacterJson(characterContext);
       const character = characterScriptBuilder(characterContext);
-      currentHistory = [new ChatCompletionRequestMessageClass('system', character)];
+      chatHistory = [new ChatCompletionRequestMessageClass('system', character)];
       // is this correct, maybe we should initiate a new history instead of error
       // res.status(500).json({ error: `No History for this ${characterId} and ${playerId}` });
     }
 
-    const { messages } = await generatePrompt({ userInput, currentHistory });
+    const { messages } = await generatePrompt({ userInput, chatHistory });
 
     logDebug('messages:', messages);
 
@@ -63,12 +67,12 @@ router.post('/send-message', async (req: Request, res: Response) => {
 
     if (choices && choices.length > 0) {
       const generatedResponse = choices[0].message;
-      res.json({ response: generatedResponse, currentHistory: [...currentHistory, generatedResponse] });
+      res.json({ response: generatedResponse, chatHistory: [...chatHistory, generatedResponse] });
     } else {
       res.status(500).json({ error: 'No response from the OpenAI API' });
     }
   } catch (error: any) {
-    logError('Error:', error?.message);
+    logError('Error:', error);
     res.status(500).json({ error: 'An error occurred', message: error.message });
   }
 });
@@ -80,7 +84,7 @@ router.post('/generate-prompt', async (req: Request, res: Response) => {
     logDebug('send-message request:', characterJson);
     const character = characterScriptBuilder(characterJson);
 
-    // const response = await generatePrompt({ characterJson, currentHistory });
+    // const response = await generatePrompt({ characterJson, chatHistory });
 
     logDebug('Response:', character);
 
