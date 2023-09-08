@@ -12,7 +12,7 @@ Receive AI-generated responses as your in-game characters.
 
 ## Installation 📦
 
-Install GPTPromptKit using npm:
+Install DialogCraftGPT lib using npm:
 
 ```
 npm install dialogcraftgpt-lib
