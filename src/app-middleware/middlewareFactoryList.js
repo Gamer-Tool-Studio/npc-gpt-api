@@ -7,12 +7,15 @@ module.exports = [
   require('./requestCalls'),
   require('./swaggerFactory'),
   require('./corsFactory'),
+
+  //session and passportJS
   require('./sessionFactory'),
+  //require('./express-session'),
+  require('./passport'),
 
   // Routes should immediately precede Error Handlers
-
   require('./staticFilesFactory'),
-  require('./apiAuthenticator'),
+  //require('./apiAuthenticator'),
   require('./routesFactory'),
 
   require('./unmatchedRouteHandlerFactory'),
