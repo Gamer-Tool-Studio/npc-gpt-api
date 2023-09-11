@@ -59,6 +59,21 @@ const env = {
     type: 'boolean',
     required: true,
   },
+  GOOGLE_CLIENT_ID: {
+    env: 'GOOGLE_CLIENT_ID',
+    type: 'string',
+    required: true,
+  },
+  GOOGLE_CLIENT_SECRET: {
+    env: 'GOOGLE_CLIENT_SECRET',
+    type: 'string',
+    required: true,
+  },
+  GOOGLE_CALLBACK: {
+    env: 'GOOGLE_CALLBACK',
+    type: 'string',
+    required: true,
+  },
 };
 
 const loggerEnv = {
