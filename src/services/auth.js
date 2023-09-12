@@ -1,5 +1,6 @@
 const DB = require('src/database');
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('auth-service');
+var bcrypt = require('bcryptjs');
 
 // const ADMIN_TOKEN = 'bWFzdGVydmlhbmE6YmVuZmljYSNkaW1hcmlh';
 const crypto = require('crypto');
@@ -8,6 +9,21 @@ function generateKey(size = 32, format = 'base64') {
   const buffer = crypto.randomBytes(size);
   return buffer.toString(format);
 }
+
+const registerUser = async (data) => {
+  logDebug('********* authenticator route **********', data);
+
+  data.password = bcrypt.hashSync(data.password, bcrypt.genSaltSync(10), null);
+  const newUser = await DB.registerUser(data);
+  logDebug('ccreated user', newUser);
+
+  try {
+    return newUser;
+  } catch (ex) {
+    logError('register new user ', ex);
+    throw ex;
+  }
+};
 
 const authLogin = async (data) => {
   logDebug('********* authenticator route **********', data);
@@ -81,4 +97,5 @@ module.exports = {
   resetApiKey,
   createAccount,
   listAccount,
+  registerUser,
 };
