@@ -8,6 +8,9 @@ export function isArrayOf<T extends object>(arr: Array<T>, keys: Array<keyof T>)
   return Array.isArray(arr) && arr.length > 0 && arr.every((element) => hasSameProperties<T>(element, keys));
 }
 
+
+
+
 export const isInstanceOf = <T>(ctor: { new (...args: any): T }) => {
   return (x: any): x is T => x instanceof ctor;
 };
