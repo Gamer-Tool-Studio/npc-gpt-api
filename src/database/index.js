@@ -44,6 +44,16 @@ const Database = {
     return mongoDB.socialProof.find(filter, select, options);
   },
 
+  findUser: (filter, select, options) => {
+    return mongoDB.user.find(filter, select, options);
+  },
+  findUserById: (id) => {
+    return mongoDB.user.findById(id);
+  },
+  registerUser: (data, options) => {
+    return mongoDB.user.create(data, options);
+  },
+
   findAndUpdateBillingDay: (query, data, options) => {
     return mongoDB.billingDay.updateOne(query, data, options);
   },
