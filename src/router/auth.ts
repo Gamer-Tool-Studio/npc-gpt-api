@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import parameterValidator from 'src/core-services/parameterValidator';
 import passport from 'passport';
 
-const { authLogin, createAccount, registerUser } = require('src/services/auth');
+const { createAccount, registerUser } = require('src/services/auth');
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('auth');
 
 const router = Router();

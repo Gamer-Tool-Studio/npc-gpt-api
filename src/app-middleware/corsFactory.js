@@ -13,12 +13,13 @@ module.exports = function corsFactory(config) {
   if (config.enableCORS) {
     const origin = parseValues(config.allowedOrigins);
     const allowedHeaders = parseValues(config.allowedHeaders);
-    corsOpts = ({
+    corsOpts = {
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      preflightContinue: true,
+      // preflightContinue: true,
       allowedHeaders,
+      credentials: true,
       origin,
-    });
+    };
   }
   return cors(corsOpts);
 };

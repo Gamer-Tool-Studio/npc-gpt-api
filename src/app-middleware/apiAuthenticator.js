@@ -13,9 +13,11 @@ const signValidatorHandler = (req, res, next) => {
 
   const calledUrl = req.originalUrl.split('?')[0];
   logDebug('called url ', calledUrl);
-
+  logDebug(JSON.stringify(req.headers.cookie));
+  logDebug(JSON.stringify(req.cookies));
   if (authRoutes.includes(calledUrl)) {
     try {
+      logDebug('isAuthenticated ', req.isAuthenticated());
       if (req.isAuthenticated()) {
         return next();
       }
