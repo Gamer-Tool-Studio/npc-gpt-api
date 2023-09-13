@@ -8,9 +8,9 @@ module.exports = [
   require('./swaggerFactory'),
   require('./corsFactory'),
 
-  //session and passportJS
+  // session and passportJS
   require('./sessionFactory'),
-  //require('./express-session'),
+  // require('./express-session'),
   require('./passport'),
 
   // Routes should immediately precede Error Handlers

@@ -6,9 +6,9 @@ const { logDebug, logError } = require('src/core-services/logFunctionFactory').g
 /**
  * Routes that uses authentications
  */
-const authRoutes = ['/api/v1/auth/getData', '/api/v1/user/profile'];
+const authRoutes = ['/api/v1/auth/getData', '/api/v1/user/profile', '/api/v1/usage/month'];
 
-const signValidatorHandler = async function (req, res, next) {
+const signValidatorHandler = (req, res, next) => {
   logDebug('API AUTHENTICATOR\n', 'URL : ', req.originalUrl, ' METHOD ', req.method);
 
   const calledUrl = req.originalUrl.split('?')[0];
@@ -24,11 +24,11 @@ const signValidatorHandler = async function (req, res, next) {
       logError('Error in middlware ', error);
       const err = new Error('Internal server error');
       err.status = 500;
-      next(err);
+      return next(err);
     }
   } else {
     logDebug('Bypassing authorization for url: ', calledUrl);
-    next();
+    return next();
   }
 };
 

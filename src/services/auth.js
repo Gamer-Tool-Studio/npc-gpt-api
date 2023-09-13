@@ -1,9 +1,10 @@
 const DB = require('src/database');
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('auth-service');
-var bcrypt = require('bcryptjs');
+
+const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 // const ADMIN_TOKEN = 'bWFzdGVydmlhbmE6YmVuZmljYSNkaW1hcmlh';
-const crypto = require('crypto');
 
 function generateKey(size = 32, format = 'base64') {
   const buffer = crypto.randomBytes(size);
@@ -13,9 +14,9 @@ function generateKey(size = 32, format = 'base64') {
 const registerUser = async (data) => {
   logDebug('********* authenticator route **********', data);
 
-  data.password = bcrypt.hashSync(data.password, bcrypt.genSaltSync(10), null);
-  const newUser = await DB.registerUser(data);
-  logDebug('ccreated user', newUser);
+  const passwordHash = bcrypt.hashSync(data.password, bcrypt.genSaltSync(10), null);
+  const newUser = await DB.registerUser({ ...data, password: passwordHash });
+  logDebug('Created user', newUser);
 
   try {
     return newUser;

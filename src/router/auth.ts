@@ -1,40 +1,37 @@
 import { Router, Request, Response } from 'express';
 import parameterValidator from 'src/core-services/parameterValidator';
-import passport from 'passport'
+import passport from 'passport';
+
 const { authLogin, createAccount, registerUser } = require('src/services/auth');
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('auth');
+
 const router = Router();
 
 router.get('/getData', async (req: Request, res: Response) => {
   try {
-    logDebug(' **** Auth token route **** ');
+    logDebug(' **** getData route **** ');
     res.json({
-      token: req.user
+      token: req.user,
     });
   } catch (ex) {
-    logError('get todo ', ex);
+    logError('/getData', ex);
     res.status(500).json({ error: ex });
   }
 });
 
-/** 
- * 
- *  Google authenticator 
+/**
+ *
+ *  Google authenticator
  * */
-router.get(
-  '/google/callback',
-  passport.authenticate('google', { failureRedirect: '/' }),
-  (req, res) => {
-    res.status(200).json({ message: 'okkpa!', params : req.params });
-  }
-);
+router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
+  res.status(200).json({ message: 'okkpa!', params: req.params });
+});
 
 router.get('/google/login', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-
-/** 
- * 
- *  Local authenticator 
+/**
+ *
+ *  Local authenticator
  * */
 
 router.post('/local/register', async (req: Request, res: Response) => {
@@ -43,28 +40,17 @@ router.post('/local/register', async (req: Request, res: Response) => {
     const params = ['username', 'password', 'email'];
     parameterValidator(req.body, params);
 
-    let newUser = await registerUser(req.body);
-    res.json(newUser);
+    const newUser = await registerUser(req.body);
+    res.json({ user: newUser });
   } catch (ex) {
     logError('issue register new user ', ex);
     res.status(500).json({ error: ex });
   }
 });
 
-router.post(
-  '/local/login',
-  passport.authenticate("local"),
-  function(req : Request, res : Response) {
-     res.json(req.user);
-  }
-);
-
-
-
-
-
-
-
+router.post('/local/login', passport.authenticate('local'), (req: Request, res: Response) => {
+  res.json(req.user);
+});
 
 router.post('/gen-auth', async (req: Request, res: Response) => {
   try {

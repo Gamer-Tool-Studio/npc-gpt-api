@@ -1,17 +1,16 @@
 const { Router } = require('express');
-const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('passport');
+const { logDebug } = require('src/core-services/logFunctionFactory').getLogger('passport');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const DB = require('src/database');
-var bcrypt = require('bcryptjs');
 const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALLBACK } = require('~/config');
 
-const _router = Router();
-_router.use(passport.initialize());
-_router.use(passport.session());
+const router = Router();
+router.use(passport.initialize());
+router.use(passport.session());
 
-//google strategy
+// google strategy
 // http://localhost:3002/api/v1/auth/google/login
 passport.use(
   new GoogleStrategy(
@@ -33,22 +32,22 @@ passport.use(
       usernameField: 'username',
       passwordField: 'password',
     },
-    async function (username, password, done) {
+    async (username, password, done) => {
       try {
-        logDebug('username 1 ', username);
-        logDebug('password  2 ', password);
-        let user = await DB.findUser({ username: username }, null, null);
+        logDebug('username: ', username);
+        logDebug('password: ', password);
+        const user = (await DB.findUser({ username }, null, null))?.[0];
 
         if (user && user.length <= 0) {
           return done(null, false);
         }
-        user = user[0];
+
         if (!user.verifyPassword(password)) {
           return done(null, false);
         }
         logDebug('ok!! ', done);
 
-        return done(null, { user: user, type: 'local' });
+        return done(null, { user, type: 'local' });
       } catch (err) {
         return done(err);
       }
@@ -57,14 +56,14 @@ passport.use(
 );
 
 // used to serialize the user for the session
-passport.serializeUser(function (user, done) {
+passport.serializeUser((user, done) => {
   logDebug('serialize user  ', user);
   done(null, user);
   // where is this user.id going? Are we supposed to access this anywhere?
 });
 
 // used to deserialize the user
-passport.deserializeUser(async function (user, done) {
+passport.deserializeUser(async (user, done) => {
   try {
     logDebug('deserializeUser user  ', user);
     // let user = await DB.findUser({ _id: id }, null, null);
@@ -80,6 +79,5 @@ passport.deserializeUser(async function (user, done) {
 });
 
 module.exports = () => {
-  console.log('Init passport');
-  return _router;
+  return router;
 };

@@ -1,17 +1,19 @@
-
 import { Router, Request, Response } from 'express';
-const { authLogin, createAccount, registerUser } = require('src/services/auth');
-const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('auth');
+
+const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('user');
+
 const router = Router();
 
-  
 /**
- *  Login profile
+ *  User profile
  */
-router.get('/profile', (req,res) => {
-    // Work
-    res.json({message : 'its okay', user : req.user });
+router.get('/profile', (req: Request, res: Response) => {
+  logDebug('Route /profile');
+  try {
+    res.json({ message: 'its okay', user: req.user });
+  } catch (error) {
+    logError(error);
+  }
 });
-
 
 export default router;
