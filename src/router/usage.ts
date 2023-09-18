@@ -16,7 +16,7 @@ router.post('/month', async (req: Request, res: Response) => {
     const data = Array.from({ length: numDays }, () => Math.floor(Math.random() * 91) + 10);
 
     res.json({
-      data,
+      month: data,
     });
   } catch (ex) {
     logError('get todo ', ex);

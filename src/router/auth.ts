@@ -2,10 +2,16 @@ import { Router, Request, Response } from 'express';
 import parameterValidator from 'src/core-services/parameterValidator';
 import passport from 'passport';
 
-const { authLogin, createAccount, registerUser } = require('src/services/auth');
+const { createAccount, registerUser } = require('src/services/auth');
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('auth');
 
 const router = Router();
+
+router.get('/check', (_, res) => {
+  res.status(200).json({
+    isAuthenticated: true,
+  });
+});
 
 router.get('/getData', async (req: Request, res: Response) => {
   try {
@@ -24,7 +30,7 @@ router.get('/getData', async (req: Request, res: Response) => {
  *  Google authenticator
  * */
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
-  res.status(200).json({ message: 'okkpa!', params: req.params });
+  res.redirect('http://127.0.0.1.:3000/redirect');
 });
 
 router.get('/google/login', passport.authenticate('google', { scope: ['profile', 'email'] }));
