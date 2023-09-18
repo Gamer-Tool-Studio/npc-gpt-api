@@ -11,7 +11,8 @@ function parseValues(originalValues) {
 module.exports = function corsFactory(config) {
   let corsOpts = {};
   if (config.enableCORS) {
-    const origin = parseValues(config.allowedOrigins);
+    let origin = parseValues(config.allowedOrigins);
+    origin = origin === 'true' ? JSON.parse(origin) : origin;
     const allowedHeaders = parseValues(config.allowedHeaders);
     corsOpts = {
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

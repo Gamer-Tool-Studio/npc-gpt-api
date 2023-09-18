@@ -9,8 +9,9 @@ const oneDay = 1000 * 60 * 60 * 24;
 
 router.use(
   session({
+    name: 'gts.api',
     secret: 'thisismysecrctekeyfhrgfgrfrty84fwir767',
-    // saveUninitialized: true,
+    saveUninitialized: true,
     cookie: { maxAge: oneDay },
     resave: false,
   }),
