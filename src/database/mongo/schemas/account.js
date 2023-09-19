@@ -1,13 +1,14 @@
-const Schema = require('mongoose').Schema
+const Schema = require('mongoose').Schema;
 
 const accountSchema = new Schema(
   {
-    accountId: Object,
+    user_id: String,
+    apiKey: Object,
     apiSecret: Object,
-    email: String
+    email: String,
   },
-  { collection: 'account', versionKey: false }
-)
-accountSchema.set('timestamps', true)
+  { collection: 'account', versionKey: false },
+);
+accountSchema.set('timestamps', true);
 
-module.exports = accountSchema
+module.exports = accountSchema;

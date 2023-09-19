@@ -11,6 +11,36 @@ function generateKey(size = 32, format = 'base64') {
   return buffer.toString(format);
 }
 
+/**
+ * Given a passport session with will create both user and account
+ * @param {*} data
+ * @returns
+ */
+const createNewUserAndAccount = async (user) => {
+  logDebug('********* createNewUserAndAccount **********');
+
+  try {
+    // if (user.type == 'google') {
+    let savedUser = await DB.findUser({ ext_id: user.id });
+    // if user does not exist, create user and account data
+    if (!(savedUser && savedUser.length > 0)) {
+      let newUser = {
+        ext_id: user.id,
+        email: user.emails[0] || '',
+        username: user.displayNam || user.username,
+        type: user.type,
+        photos: user.photos || '',
+      };
+      let createdUser = await DB.registerUser(newUser);
+      return createdUser;
+    }
+    // }
+  } catch (ex) {
+    logError('createNewUserAndAccount  ', ex);
+    throw ex;
+  }
+};
+
 const registerUser = async (data) => {
   logDebug('********* authenticator route **********', data);
 
@@ -99,4 +129,5 @@ module.exports = {
   createAccount,
   listAccount,
   registerUser,
+  createNewUserAndAccount,
 };
