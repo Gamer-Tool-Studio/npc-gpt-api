@@ -56,14 +56,14 @@ passport.use(
 );
 
 // used to serialize the user for the session
-passport.serializeUser((user, done) => {
+passport.serializeUser(({ user }, done) => {
   logDebug('serialize user  ', user);
-  done(null, user);
+  done(null, { user });
   // where is this user.id going? Are we supposed to access this anywhere?
 });
 
 // used to deserialize the user
-passport.deserializeUser(async (user, done) => {
+passport.deserializeUser(async ({ user }, done) => {
   try {
     logDebug('deserializeUser user  ', user);
     // let user = await DB.findUser({ _id: id }, null, null);

@@ -7,9 +7,11 @@ const { logDebug, logError } = require('src/core-services/logFunctionFactory').g
 
 const router = Router();
 
-router.get('/check', (_, res) => {
+router.get('/check', (req, res) => {
   res.status(200).json({
     isAuthenticated: true,
+    token: 'token',
+    user: req.user,
   });
 });
 
