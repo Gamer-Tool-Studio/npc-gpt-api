@@ -3,10 +3,13 @@ var bcrypt = require('bcryptjs');
 
 const UserSchema = new Schema(
   {
-    user_id: String,
+    ext_id: String,
     username: String,
     email: String,
     password: String,
+    type: String,
+    photo: String,
+    user_data: String,
   },
   { collection: 'user', versionKey: false },
 );

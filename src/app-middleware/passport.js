@@ -58,6 +58,11 @@ passport.use(
 // used to serialize the user for the session
 passport.serializeUser(({ user }, done) => {
   logDebug('serialize user  ', user);
+  if (user.type === 'google') {
+    logDebug('GOOGLE USER  ############ ');
+  } else if (user.type === 'local') {
+    logDebug('LOCAL USER  ############ ');
+  }
   done(null, { user });
   // where is this user.id going? Are we supposed to access this anywhere?
 });

@@ -12,7 +12,7 @@ const env = {
   appName: {
     env: 'APP_NAME',
     type: 'string',
-    required: true,
+    required: false,
   },
   debug: {
     env: 'DEBUG',
