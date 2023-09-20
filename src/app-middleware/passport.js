@@ -20,7 +20,7 @@ passport.use(
       callbackURL: GOOGLE_CALLBACK, // Replace with your callback URL
     },
     (accessToken, refreshToken, profile, done) => {
-      return done(null, { user: profile, type: 'google' });
+      return done(null, { ...profile, strategy: 'google' });
     },
   ),
 );
@@ -47,7 +47,7 @@ passport.use(
         }
         logDebug('ok!! ', done);
 
-        return done(null, { user, type: 'local' });
+        return done(null, { ...user, strategy: 'local' });
       } catch (err) {
         return done(err);
       }
@@ -56,19 +56,19 @@ passport.use(
 );
 
 // used to serialize the user for the session
-passport.serializeUser(({ user }, done) => {
-  logDebug('serialize user  ', user);
-  if (user.type === 'google') {
+passport.serializeUser((user, done) => {
+  logDebug('serialize user  ');
+  if (user.strategy === 'google') {
     logDebug('GOOGLE USER  ############ ');
-  } else if (user.type === 'local') {
+  } else if (user.strategy === 'local') {
     logDebug('LOCAL USER  ############ ');
   }
-  done(null, { user });
+  done(null, user);
   // where is this user.id going? Are we supposed to access this anywhere?
 });
 
 // used to deserialize the user
-passport.deserializeUser(async ({ user }, done) => {
+passport.deserializeUser(async (user, done) => {
   try {
     logDebug('deserializeUser user  ', user);
     // let user = await DB.findUser({ _id: id }, null, null);
