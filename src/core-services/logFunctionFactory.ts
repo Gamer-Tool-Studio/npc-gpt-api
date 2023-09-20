@@ -1,27 +1,29 @@
 const Logger = require('debug');
 
+const { appName: name } = require('src/config');
+
 const Factory = {
-  getLogger: (name: string) => {
+  getLogger: (moduleName: string) => {
     return {
-      logError: Logger(`secret-gpt:error:${name}`),
-      logDebug: Logger(`secret-gpt:${name}`),
+      logError: Logger(`${name}:error:${moduleName}`),
+      logDebug: Logger(`${name}:${moduleName}`),
     };
   },
 
-  getErrorLogger: (name: string) => {
-    return Logger(`secret-gpt:error:${name}`);
+  getErrorLogger: (moduleName: string) => {
+    return Logger(`secret-gpt:error:${moduleName}`);
   },
 
-  getWarnLogger: (name: string) => {
-    return Logger(`secret-gpt:warn:${name}`);
+  getWarnLogger: (moduleName: string) => {
+    return Logger(`secret-gpt:warn:${moduleName}`);
   },
 
-  getInfoLogger: (name: string) => {
-    return Logger(`secret-gpt:info:${name}`);
+  getInfoLogger: (moduleName: string) => {
+    return Logger(`secret-gpt:info:${moduleName}`);
   },
 
-  getDebugLogger: (name: string) => {
-    return Logger(`secret-gpt:debug:${name}`);
+  getDebugLogger: (moduleName: string) => {
+    return Logger(`secret-gpt:debug:${moduleName}`);
   },
 };
 

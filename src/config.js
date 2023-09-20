@@ -17,7 +17,7 @@ const env = {
   debug: {
     env: 'DEBUG',
     type: 'string',
-    required: true,
+    // required: true,
   },
   desiredPort: {
     env: 'PORT',
