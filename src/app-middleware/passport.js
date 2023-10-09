@@ -36,7 +36,7 @@ passport.use(
       try {
         logDebug('username: ', username);
         logDebug('password: ', password);
-        const user = (await DB.findUser({ username }, null, null))?.[0];
+        const user = await DB.findSingleUser({ username }, null, null);
 
         if (user && user.length <= 0) {
           return done(null, false);
@@ -45,9 +45,9 @@ passport.use(
         if (!user.verifyPassword(password)) {
           return done(null, false);
         }
-        logDebug('ok!! ', done);
+        logDebug('ok!! ', user);
 
-        return done(null, { ...user, strategy: 'local' });
+        return done(null, { ...user.toJSON(), strategy: 'local' });
       } catch (err) {
         return done(err);
       }
@@ -56,12 +56,13 @@ passport.use(
 );
 
 // used to serialize the user for the session
+
 passport.serializeUser((user, done) => {
   logDebug('serialize user  ');
   if (user.strategy === 'google') {
     logDebug('GOOGLE USER  ############ ');
   } else if (user.strategy === 'local') {
-    logDebug('LOCAL USER  ############ ');
+    logDebug('LOCAL USER  ############ ', user);
   }
   done(null, user);
   // where is this user.id going? Are we supposed to access this anywhere?

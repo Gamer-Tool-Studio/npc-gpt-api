@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import parameterValidator from 'src/core-services/parameterValidator';
 import passport from 'passport';
+import { filterObject } from 'src/lib/util';
 
 const { createAccount, registerUser } = require('src/services/auth');
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('auth');
@@ -56,8 +57,20 @@ router.post('/local/register', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/local/login', passport.authenticate('local'), (req: Request, res: Response) => {
-  res.json(req.user);
+router.post('/local/login', passport.authenticate('local'), async (req: Request, res: Response) => {
+  logDebug(' **** login route **** ', req.user);
+
+  const { user } = req;
+
+  if (!user) {
+    return res.status(401).json({ error: 'Not registered' });
+  }
+
+  const filter = ['_id', 'username', 'email'];
+  const userFiltered = filterObject(user as unknown as Record<string, unknown>, filter);
+  logDebug(' ****user **** after', userFiltered);
+
+  return res.json({ user: userFiltered });
 });
 
 router.post('/gen-auth', async (req: Request, res: Response) => {

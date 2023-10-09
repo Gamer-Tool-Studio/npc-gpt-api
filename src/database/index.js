@@ -47,6 +47,9 @@ const Database = {
   findUser: (filter, select, options) => {
     return mongoDB.user.find(filter, select, options);
   },
+  findSingleUser: (filter, select, options) => {
+    return mongoDB.user.findOne(filter, select, options);
+  },
   findUserAndUpdate: (filter, update, options) => {
     return mongoDB.user.findOneAndUpdate(filter, update, options);
   },

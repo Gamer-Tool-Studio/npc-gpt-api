@@ -55,3 +55,13 @@ export function mapGoogleToProfile(user: Express.User) {
 export const isInstanceOf = <T>(ctor: { new (...args: any): T }) => {
   return (x: any): x is T => x instanceof ctor;
 };
+
+export function filterObject(raw: Record<string, unknown>, allowed: string[]) {
+  return Object.keys(raw)
+    .filter((key) => allowed.includes(key))
+    .reduce((object: Record<string, unknown>, key) => {
+      const obj = { ...object };
+      obj[key] = raw[key];
+      return obj;
+    }, {});
+}
