@@ -1,5 +1,5 @@
 const { Schema } = require('mongoose');
-var bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 
 const UserSchema = new Schema(
   {
@@ -25,13 +25,20 @@ UserSchema.set('timestamps', true);
 //   newUser.password = bcrypt.hashSync(newUser.password, bcrypt.genSaltSync(10), null);
 // });
 
-UserSchema.methods.verifyPassword = function (pw) {
-  console.log('password to verify ', pw);
+UserSchema.methods.verifyPassword = function verifyPassword(pw) {
   return bcrypt.compareSync(pw, this.password);
 };
 
-UserSchema.methods.setPassword = function (pw) {
-  this.password = bcrypt.hashSync(newUser.password, bcrypt.genSaltSync(10), null);
+UserSchema.methods.setPassword = function setPassword(pw) {
+  this.password = bcrypt.hashSync(pw, bcrypt.genSaltSync(10), null);
 };
+
+UserSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString(); // eslint-disable-line no-param-reassign, no-underscore-dangle
+    delete returnedObject._id; // eslint-disable-line no-param-reassign, no-underscore-dangle
+    delete returnedObject.__v; // eslint-disable-line no-param-reassign, no-underscore-dangle
+  },
+});
 
 module.exports = UserSchema;

@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import parameterValidator from 'src/core-services/parameterValidator';
 import passport from 'passport';
 import { filterObject } from 'src/lib/util';
+import { issueTokenForUser } from 'src/services/auth';
 
 const { createAccount, registerUser } = require('src/services/auth');
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('auth');
@@ -70,7 +71,16 @@ router.post('/local/login', passport.authenticate('local'), async (req: Request,
   const userFiltered = filterObject(user as unknown as Record<string, unknown>, filter);
   logDebug(' ****user **** after', userFiltered);
 
-  return res.json({ user: userFiltered });
+  const tokenObject = await issueTokenForUser(userFiltered);
+
+  return res.status(200).json({
+    success: true,
+    token: tokenObject.token,
+    expiresIn: tokenObject.expires,
+    user: { ...userFiltered },
+  });
+
+  // return res.json({ user: { ...userFiltered } });
 });
 
 router.post('/gen-auth', async (req: Request, res: Response) => {

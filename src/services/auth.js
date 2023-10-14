@@ -3,6 +3,7 @@ const { logDebug, logError } = require('src/core-services/logFunctionFactory').g
 
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const jwtHelper = require('src/lib/jwt');
 
 // const ADMIN_TOKEN = 'bWFzdGVydmlhbmE6YmVuZmljYSNkaW1hcmlh';
 
@@ -21,19 +22,20 @@ const createNewUserAndAccount = async (user) => {
 
   try {
     // if (user.type == 'google') {
-    let savedUser = await DB.findUser({ ext_id: user.id });
+    const savedUser = await DB.findSingleUser({ ext_id: user.id });
     // if user does not exist, create user and account data
-    if (!(savedUser && savedUser.length > 0)) {
-      let newUser = {
+    if (!savedUser) {
+      const newUser = {
         ext_id: user.id,
         email: user.emails[0] || '',
         username: user.displayNam || user.username,
         type: user.type,
         photos: user.photos || '',
       };
-      let createdUser = await DB.registerUser(newUser);
+      const createdUser = await DB.registerUser(newUser);
       return createdUser;
     }
+    throw new Error('User already exists');
     // }
   } catch (ex) {
     logError('createNewUserAndAccount  ', ex);
@@ -123,6 +125,18 @@ const resetApiKey = async (data) => {
   }
 };
 
+const issueTokenForUser = async (userDetails) => {
+  // Issues token
+  return jwtHelper.issueJWT(
+    // eslint-disable-next-line no-underscore-dangle
+    userDetails._id,
+    {
+      userDetails,
+    },
+    '24h',
+  );
+};
+
 module.exports = {
   authLogin,
   resetApiKey,
@@ -130,4 +144,5 @@ module.exports = {
   listAccount,
   registerUser,
   createNewUserAndAccount,
+  issueTokenForUser,
 };

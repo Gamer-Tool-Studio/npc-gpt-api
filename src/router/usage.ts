@@ -1,12 +1,12 @@
 import { Router, Request, Response } from 'express';
 
-const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('chat');
+const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('usage');
 
 const router = Router();
 
-router.post('/month', async (req: Request, res: Response) => {
+router.post('/perMonth', async (req: Request, res: Response) => {
   try {
-    logDebug(' **** Token Month Usage **** ');
+    logDebug(' **** Token Month Usage **** ', req.user);
 
     const { year, month } = req.body as { year: number; month: number };
 

@@ -37,15 +37,15 @@ passport.use(
         logDebug('username: ', username);
         logDebug('password: ', password);
         const user = await DB.findSingleUser({ username }, null, null);
+        logDebug('ok!! ', user);
 
-        if (user && user.length <= 0) {
+        if (!user) {
           return done(null, false);
         }
 
         if (!user.verifyPassword(password)) {
           return done(null, false);
         }
-        logDebug('ok!! ', user);
 
         return done(null, { ...user.toJSON(), strategy: 'local' });
       } catch (err) {

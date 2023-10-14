@@ -74,6 +74,11 @@ const env = {
     type: 'string',
     required: true,
   },
+  TOKEN_SECRET: {
+    env: 'TOKEN_SECRET',
+    type: 'string',
+    required: true,
+  },
 };
 
 const loggerEnv = {
