@@ -60,7 +60,7 @@ passport.use(
 passport.serializeUser((user, done) => {
   logDebug('serialize user  ');
   if (user.strategy === 'google') {
-    logDebug('GOOGLE USER  ############ ');
+    logDebug('GOOGLE USER  ############ ', user);
   } else if (user.strategy === 'local') {
     logDebug('LOCAL USER  ############ ', user);
   }

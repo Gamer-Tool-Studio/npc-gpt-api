@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { checkAuthenticated } from 'src/lib/util';
 
 const { mapGoogleToProfile } = require('src/lib/util');
 
@@ -9,7 +10,7 @@ const router = Router();
 /**
  *  User profile
  */
-router.get('/profile', (req: Request, res: Response) => {
+router.get('/profile', checkAuthenticated, (req: Request, res: Response) => {
   logDebug('Route /profile', req.user);
   let mappedUser;
 
