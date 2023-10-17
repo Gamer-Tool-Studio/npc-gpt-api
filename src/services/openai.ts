@@ -31,15 +31,15 @@ const listEngines = async () => {
 };
 
 const createCompletion = async ({ messages }: { messages: Array<ChatCompletionRequestMessage> }) => {
-  // const response = await openai.createChatCompletion({
-  //   model: 'text-davinci-003',
-  //   messages,
-  //   max_tokens: 60,
-  //   temperature: 0.5,
-  // });
+  const response = await openai.createChatCompletion({
+    model: 'text-davinci-003',
+    messages,
+    max_tokens: 60,
+    temperature: 0.5,
+  });
 
-  // return response.data;
-  return { choices: [{ message: messages.at(-1) }] };
+  return response.data;
+  // return { choices: [{ message: messages.at(-1) }] };
 };
 
 export { createCompletion, listEngines, generatePrompt };
