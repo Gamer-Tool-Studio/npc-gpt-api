@@ -6,7 +6,7 @@ const { logDebug, logError } = require('src/core-services/logFunctionFactory').g
 /**
  * Routes that uses authentications
  */
-const authRoutes = ['/api/v1/auth/getData', '/api/v1/user/profile', '/api/v1/auth/check', '/api/v1/chat/send-message'];
+const authRoutes = ['/api/v1/auth/getData', '/api/v1/user/profile', '/api/v1/auth/check'];
 
 const signValidatorHandler = (req, res, next) => {
   logDebug('API AUTHENTICATOR\n', 'URL : ', req.originalUrl, ' METHOD ', req.method);

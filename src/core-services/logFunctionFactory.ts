@@ -11,19 +11,19 @@ const Factory = {
   },
 
   getErrorLogger: (moduleName: string) => {
-    return Logger(`secret-gpt:error:${moduleName}`);
+    return Logger(`${name}:error:${moduleName}`);
   },
 
   getWarnLogger: (moduleName: string) => {
-    return Logger(`secret-gpt:warn:${moduleName}`);
+    return Logger(`${name}:warn:${moduleName}`);
   },
 
   getInfoLogger: (moduleName: string) => {
-    return Logger(`secret-gpt:info:${moduleName}`);
+    return Logger(`${name}:info:${moduleName}`);
   },
 
   getDebugLogger: (moduleName: string) => {
-    return Logger(`secret-gpt:debug:${moduleName}`);
+    return Logger(`${name}:debug:${moduleName}`);
   },
 };
 

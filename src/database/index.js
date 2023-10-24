@@ -68,12 +68,75 @@ const Database = {
     return mongoDB.billing.updateOne(query, data, options);
   },
 
+  findBillingDayUpdate: (filter, select, options) => {
+    return mongoDB.billingDay.findOneAndUpdate(filter, select, options);
+  },
   findBillingDay: (filter, select, options) => {
     return mongoDB.billingDay.find(filter, select, options);
   },
+  findBillingDayAggregate: async (year, month, accountId) => {
+    try {
+      const result = await mongoDB.billingDay.aggregate([
+        {
+          $match: {
+            accountId,
+          },
+        },
+        {
+          $unwind: '$dailyValues',
+        },
+        {
+          $match: {
+            $expr: {
+              $and: [
+                { $eq: [{ $year: '$dailyValues.date' }, year] },
+                { $eq: [{ $month: '$dailyValues.date' }, month] },
+              ],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: '$accountId',
+            data: {
+              $push: { input: '$dailyValues.inputWords', output: '$dailyValues.inputWords', date: '$dailyValues.date' },
+            },
+            // totalInput: { $push: '$dailyValues.inputWords' },
+            // totalOutput: { $push: '$dailyValues.inputWords' },
+          },
+        },
+      ]);
+      console.error('aggregate data:', result[0].data);
+
+      if (result.length > 0) {
+        const monthlyData = result[0].data;
+        const numberOfDaysInMonth = new Date(year, month, 0).getDate(); // Calculate the number of days in the specified month
+
+        // Create arrays with zeros for all days in the month
+        const monthlyInput = Array(numberOfDaysInMonth).fill(0);
+        const monthlyOutput = Array(numberOfDaysInMonth).fill(0);
+
+        // Fill in the actual data where it exists
+        monthlyData.forEach((entry) => {
+          const dayOfMonth = new Date(entry.date).getDate();
+          console.log('dayOfMonth:', entry, dayOfMonth);
+
+          monthlyInput[dayOfMonth - 1] = entry.input;
+          monthlyOutput[dayOfMonth - 1] = entry.output;
+        });
+
+        return { monthlyInput, monthlyOutput }; // Total value for the specified year and month
+      } else {
+        return 0; // No data found for the specified year and month
+      }
+    } catch (err) {
+      console.error('Error retrieving data:', err);
+      throw err;
+    }
+  },
 
   findBillingLog: (filter, select, options) => {
-    return mongoDB.billing.find(filter, select, options);
+    return mongoDB.billing.findOne(filter, select, options);
   },
 
   findUsers: (filter, select, options) => {
@@ -92,9 +155,6 @@ const Database = {
   },
   findCompanyProfile: (filter, select, options) => {
     return mongoDB.company.find(filter, select, options);
-  },
-  updateCompanyProfile: (criteria, update, options) => {
-    return mongoDB.company.findOneAndUpdate(criteria, update, options);
   },
 
   saveToken: async (key, token, ttl) => {

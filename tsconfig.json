@@ -20,6 +20,6 @@
       "~/*": ["src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/index.ts", "src/**/*.js", "src/**/*.d.ts"],
+  "include": ["src/**/*.ts", "src/index.ts", "src/**/*.js", "src/**/*.d.ts", "./webpack.config.ts"],
   "exclude": ["src/**/*.spec.ts", "src/**/__tests__/*.ts", "build", "node_modules"]
 }

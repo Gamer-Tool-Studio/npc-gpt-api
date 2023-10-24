@@ -6,7 +6,7 @@ import { characterScriptBuilder } from 'src/lib/characterBuilder';
 import { isArrayOf } from 'src/lib/util';
 import { ChatCompletionRequestMessage } from 'openai';
 import { ChatCompletionRequestMessageClass } from 'src/types/openai.types';
-import { inputBillingEvent } from 'src/services/billing';
+import { updateBilling } from 'src/services/billing';
 
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('chat');
 
@@ -27,16 +27,13 @@ router.post('/send-message', async (req: Request, res: Response) => {
   try {
     parameterValidator(req.body, params);
 
-    const { userInput } = req.body;
+    const { userInput, playerName, accountId } = req.body;
     let { chatHistory } = req.body as { chatHistory: Array<ChatCompletionRequestMessage> };
 
     // TODO: when does the character is initiated
 
     // TODO: get message from redis to get the character history
     logDebug('send-message userInput:', userInput);
-
-    const billing = await inputBillingEvent({ messageIn: userInput });
-    logDebug('send-message inputBillingEvent res:', billing);
 
     // eslint-disable-next-line @typescript-eslint/naming-convention, object-curly-newline
 
@@ -50,18 +47,24 @@ router.post('/send-message', async (req: Request, res: Response) => {
 
       // const { characterJson } = await getCharacterJson(characterContext);
       const character = characterScriptBuilder(characterContext);
-      chatHistory = [new ChatCompletionRequestMessageClass('system', character)];
+      chatHistory = [new ChatCompletionRequestMessageClass('system', character, characterContext.name)];
       // is this correct, maybe we should initiate a new history instead of error
       // res.status(500).json({ error: `No History for this ${characterId} and ${playerId}` });
     }
 
-    const { messages } = await generatePrompt({ userInput, chatHistory });
+    const { messages } = await generatePrompt({ userInput, chatHistory, playerName });
 
     logDebug('messages:', messages);
 
     const response = await createCompletion({ messages });
 
-    logDebug('Response:', response);
+    // const response = { usage: { prompt_tokens: 261, completion_tokens: 60, total_tokens: 321 } };
+    logDebug('Response createCompletion:', response);
+
+    // TODO: Update billing
+    const updateBillingRes = await updateBilling({ accountId }, response.usage);
+    logDebug('send-message inputBillingEvent res:', updateBillingRes);
+    // res.json({ response: generatedResponse, chatHistory: [...chatHistory, generatedResponse] });
 
     const { choices } = response;
 
@@ -72,8 +75,8 @@ router.post('/send-message', async (req: Request, res: Response) => {
       res.status(500).json({ error: 'No response from the OpenAI API' });
     }
   } catch (error: any) {
-    logError('Error:', error);
-    res.status(500).json({ error: 'An error occurred', message: error.message });
+    logError('Error:', error?.data?.error || error);
+    res.status(500).json({ error, message: `An error occurred: ${error.message}` });
   }
 });
 
@@ -95,7 +98,7 @@ router.post('/generate-prompt', async (req: Request, res: Response) => {
     }
   } catch (error: any) {
     logError('Error:', error?.message);
-    res.status(500).json({ error: 'An error occurred' });
+    res.status(500).json({ errorMsg: 'An error occurred', error });
   }
 });
 

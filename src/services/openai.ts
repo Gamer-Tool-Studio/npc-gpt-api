@@ -12,14 +12,14 @@ type GeneratePromptReq = ({
 }: {
   userInput: string;
   chatHistory: Array<ChatCompletionRequestMessage>;
+  playerName: string;
 }) => Promise<Record<string, Array<ChatCompletionRequestMessage>>>;
 
-const generatePrompt: GeneratePromptReq = async ({ userInput, chatHistory }) => {
+const generatePrompt: GeneratePromptReq = async ({ userInput, chatHistory, playerName }) => {
   // const character = characterScriptBuilder(characterJson);
-
   const messages = [
     ...chatHistory,
-    new ChatCompletionRequestMessageClass('user', userInput),
+    new ChatCompletionRequestMessageClass('user', userInput, playerName),
   ] as Array<ChatCompletionRequestMessage>;
 
   return { messages };
@@ -31,12 +31,18 @@ const listEngines = async () => {
 };
 
 const createCompletion = async ({ messages }: { messages: Array<ChatCompletionRequestMessage> }) => {
-  const response = await openai.createChatCompletion({
-    model: 'text-davinci-003',
-    messages,
-    max_tokens: 60,
-    temperature: 0.5,
-  });
+  const response = await openai
+    .createChatCompletion({
+      model: 'gpt-3.5-turbo',
+      messages,
+      max_tokens: 60,
+      temperature: 0.5,
+    })
+    .catch((err) => {
+      console.log(err.response.data.error);
+
+      throw new Error(err.response.data.error || err);
+    });
 
   return response.data;
   // return { choices: [{ message: messages.at(-1) }] };
