@@ -27,7 +27,7 @@ router.post('/send-message', async (req: Request, res: Response) => {
   try {
     parameterValidator(req.body, params);
 
-    const { userInput, playerName, accountId } = req.body;
+    const { userInput, playerName } = req.body;
     let { chatHistory } = req.body as { chatHistory: Array<ChatCompletionRequestMessage> };
 
     // TODO: when does the character is initiated
@@ -35,9 +35,7 @@ router.post('/send-message', async (req: Request, res: Response) => {
     // TODO: get message from redis to get the character history
     logDebug('send-message userInput:', userInput);
 
-    // eslint-disable-next-line @typescript-eslint/naming-convention, object-curly-newline
-
-    if (!isArrayOf<ChatCompletionRequestMessage>(chatHistory, ['role', 'content', 'name', 'function_call'])) {
+    if (!isArrayOf<ChatCompletionRequestMessage>(chatHistory, ['role', 'content', 'name'])) {
       const { characterContext } = req.body;
       logDebug('create new history for character', characterContext);
 
@@ -62,15 +60,15 @@ router.post('/send-message', async (req: Request, res: Response) => {
     logDebug('Response createCompletion:', response);
 
     // TODO: Update billing
-    const updateBillingRes = await updateBilling({ accountId }, response.usage);
+    const updateBillingRes = await updateBilling({ accountId: req.user?.id }, response.usage);
     logDebug('send-message inputBillingEvent res:', updateBillingRes);
-    // res.json({ response: generatedResponse, chatHistory: [...chatHistory, generatedResponse] });
+    // res.json({ response: 'generatedResponse', chatHistory: [...messages, 'generatedResponse'] });
 
     const { choices } = response;
 
     if (choices && choices.length > 0) {
       const generatedResponse = choices[0].message;
-      res.json({ response: generatedResponse, chatHistory: [...chatHistory, generatedResponse] });
+      res.json({ response: generatedResponse, chatHistory: [...messages, generatedResponse] });
     } else {
       res.status(500).json({ error: 'No response from the OpenAI API' });
     }

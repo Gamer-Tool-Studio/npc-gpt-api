@@ -99,33 +99,37 @@ const Database = {
           $group: {
             _id: '$accountId',
             data: {
-              $push: { input: '$dailyValues.inputWords', output: '$dailyValues.inputWords', date: '$dailyValues.date' },
+              $push: {
+                input: '$dailyValues.inputWords',
+                output: '$dailyValues.outputWords',
+                date: '$dailyValues.date',
+              },
             },
             // totalInput: { $push: '$dailyValues.inputWords' },
             // totalOutput: { $push: '$dailyValues.inputWords' },
           },
         },
       ]);
-      console.error('aggregate data:', result[0].data);
+      console.error('aggregate data:', result[0]?.data);
 
       if (result.length > 0) {
         const monthlyData = result[0].data;
         const numberOfDaysInMonth = new Date(year, month, 0).getDate(); // Calculate the number of days in the specified month
 
         // Create arrays with zeros for all days in the month
-        const monthlyInput = Array(numberOfDaysInMonth).fill(0);
-        const monthlyOutput = Array(numberOfDaysInMonth).fill(0);
+        const input = Array(numberOfDaysInMonth).fill(0);
+        const output = Array(numberOfDaysInMonth).fill(0);
 
         // Fill in the actual data where it exists
         monthlyData.forEach((entry) => {
           const dayOfMonth = new Date(entry.date).getDate();
           console.log('dayOfMonth:', entry, dayOfMonth);
 
-          monthlyInput[dayOfMonth - 1] = entry.input;
-          monthlyOutput[dayOfMonth - 1] = entry.output;
+          input[dayOfMonth - 1] += entry.input;
+          output[dayOfMonth - 1] += entry.output;
         });
 
-        return { monthlyInput, monthlyOutput }; // Total value for the specified year and month
+        return { input, output }; // Total value for the specified year and month
       } else {
         return 0; // No data found for the specified year and month
       }

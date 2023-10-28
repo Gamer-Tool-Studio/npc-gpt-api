@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { checkAuthenticated } from 'src/lib/util';
+import DB from 'src/database';
 
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('usage');
 
@@ -7,7 +8,7 @@ const router = Router();
 
 router.post('/perMonth', checkAuthenticated, async (req: Request, res: Response) => {
   try {
-    logDebug(' **** Token Month Usage **** ');
+    logDebug(' **** Token Monthly Usage **** ');
 
     const { year, month } = req.body as { year: number; month: number };
     logDebug(' **** MONTH ', month, year);
@@ -20,6 +21,30 @@ router.post('/perMonth', checkAuthenticated, async (req: Request, res: Response)
     });
   } catch (ex) {
     logError('get todo ', ex);
+    res.status(500).json({ error: ex });
+  }
+});
+
+router.post('/perDay', checkAuthenticated, async (req: Request, res: Response) => {
+  try {
+    logDebug(' **** Token Daily Usage **** ', req.user);
+    const { year, month } = req.body as { year: number; month: number; accountId: string };
+    logDebug(' **** MONTH ', month, year, req.user?.id);
+
+    const savedUser = await DB.findBillingDay({ accountId: req.user?.id });
+    logDebug(' **** savedUser ', savedUser);
+    const savedUserAggregate = await DB.findBillingDayAggregate(year, month + 1, req.user?.id);
+    logDebug(' **** savedUserAggregate ', savedUserAggregate);
+    const { totalInputWords, totalOutputWords } = (await DB.findBillingLog({ accountId: req.user?.id })) || {};
+
+    const usage = { totalInputWords, totalOutputWords };
+
+    res.json({
+      monthly: savedUserAggregate,
+      usage,
+    });
+  } catch (ex) {
+    logError('perDay', ex);
     res.status(500).json({ error: ex });
   }
 });

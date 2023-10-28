@@ -96,7 +96,7 @@ const outputBillingEvent = async (inputData) => {
 //   usage: { prompt_tokens: 261, completion_tokens: 60, total_tokens: 321 }
 const updateBilling = async ({ accountId }, { prompt_tokens, completion_tokens, total_tokens } = {}) => {
   logDebug(
-    `updateBilling
+    `updateBilling ${accountId}:
      prompt_tokens: ${prompt_tokens}; completion_tokens: ${completion_tokens}; total_tokens: ${total_tokens}`,
   );
 
