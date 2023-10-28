@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { checkAuthenticated } from 'src/lib/util';
+import { checkAuthenticated, filterObject } from 'src/lib/util';
 
 const { mapGoogleToProfile } = require('src/lib/util');
 
@@ -23,13 +23,19 @@ router.get('/profile', checkAuthenticated, (req: Request, res: Response) => {
         mappedUser = mapGoogleToProfile(req.user);
 
         break;
-      case 'local':
+      case 'local': {
+        const filter = ['id', 'username', 'email'];
+        const userFiltered = filterObject(req.user as unknown as Record<string, unknown>, filter);
+        logDebug(' ****user **** after', userFiltered);
+        mappedUser = { ...userFiltered };
+
         break;
+      }
 
       default:
         break;
     }
-    res.json({ message: 'its okay', user: mappedUser });
+    res.json({ ...mappedUser });
   } catch (error) {
     logError(error);
   }

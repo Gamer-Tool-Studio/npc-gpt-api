@@ -67,7 +67,7 @@ router.post('/local/login', passport.authenticate('local'), async (req: Request,
     return res.status(401).json({ error: 'Not registered' });
   }
 
-  const filter = ['_id', 'username', 'email'];
+  const filter = ['id', 'username', 'email'];
   const userFiltered = filterObject(user as unknown as Record<string, unknown>, filter);
   logDebug(' ****user **** after', userFiltered);
 
@@ -77,7 +77,6 @@ router.post('/local/login', passport.authenticate('local'), async (req: Request,
     success: true,
     token: tokenObject.token,
     expiresIn: tokenObject.expires,
-    user: { ...userFiltered },
   });
 
   // return res.json({ user: { ...userFiltered } });
