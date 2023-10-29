@@ -27,7 +27,7 @@ router.post('/send-message', async (req: Request, res: Response) => {
   try {
     parameterValidator(req.body, params);
 
-    const { userInput, playerName } = req.body;
+    const { userInput, accountId } = req.body;
     let { chatHistory } = req.body as { chatHistory: Array<ChatCompletionRequestMessage> };
 
     // TODO: when does the character is initiated
@@ -35,7 +35,7 @@ router.post('/send-message', async (req: Request, res: Response) => {
     // TODO: get message from redis to get the character history
     logDebug('send-message userInput:', userInput);
 
-    if (!isArrayOf<ChatCompletionRequestMessage>(chatHistory, ['role', 'content', 'name'])) {
+    if (!isArrayOf<ChatCompletionRequestMessage>(chatHistory, ['role', 'content'])) {
       const { characterContext } = req.body;
       logDebug('create new history for character', characterContext);
 
@@ -50,7 +50,7 @@ router.post('/send-message', async (req: Request, res: Response) => {
       // res.status(500).json({ error: `No History for this ${characterId} and ${playerId}` });
     }
 
-    const { messages } = await generatePrompt({ userInput, chatHistory, playerName });
+    const { messages } = await generatePrompt({ userInput, chatHistory });
 
     logDebug('messages:', messages);
 
@@ -60,7 +60,7 @@ router.post('/send-message', async (req: Request, res: Response) => {
     logDebug('Response createCompletion:', response);
 
     // TODO: Update billing
-    const updateBillingRes = await updateBilling({ accountId: req.user?.id }, response.usage);
+    const updateBillingRes = await updateBilling({ accountId }, response.usage);
     logDebug('send-message inputBillingEvent res:', updateBillingRes);
     // res.json({ response: 'generatedResponse', chatHistory: [...messages, 'generatedResponse'] });
 

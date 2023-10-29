@@ -129,7 +129,7 @@ const issueTokenForUser = async (userDetails) => {
   // Issues token
   return jwtHelper.issueJWT(
     // eslint-disable-next-line no-underscore-dangle
-    userDetails._id,
+    userDetails.id,
     {
       userDetails,
     },

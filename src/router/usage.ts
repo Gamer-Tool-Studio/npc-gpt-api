@@ -28,14 +28,14 @@ router.post('/perMonth', checkAuthenticated, async (req: Request, res: Response)
 router.post('/perDay', checkAuthenticated, async (req: Request, res: Response) => {
   try {
     logDebug(' **** Token Daily Usage **** ', req.user);
-    const { year, month } = req.body as { year: number; month: number; accountId: string };
-    logDebug(' **** MONTH ', month, year, req.user?.id);
+    const { year, month, accountId } = req.body as { year: number; month: number; accountId: string };
+    logDebug(' **** MONTH ', month, year, accountId);
 
-    const savedUser = await DB.findBillingDay({ accountId: req.user?.id });
+    const savedUser = await DB.findBillingDay({ accountId });
     logDebug(' **** savedUser ', savedUser);
-    const savedUserAggregate = await DB.findBillingDayAggregate(year, month + 1, req.user?.id);
+    const savedUserAggregate = await DB.findBillingDayAggregate(year, month + 1, accountId);
     logDebug(' **** savedUserAggregate ', savedUserAggregate);
-    const { totalInputWords, totalOutputWords } = (await DB.findBillingLog({ accountId: req.user?.id })) || {};
+    const { totalInputWords, totalOutputWords } = (await DB.findBillingLog({ accountId })) || {};
 
     const usage = { totalInputWords, totalOutputWords };
 

@@ -12,14 +12,13 @@ type GeneratePromptReq = ({
 }: {
   userInput: string;
   chatHistory: Array<ChatCompletionRequestMessage>;
-  playerName: string;
 }) => Promise<Record<string, Array<ChatCompletionRequestMessage>>>;
 
-const generatePrompt: GeneratePromptReq = async ({ userInput, chatHistory, playerName }) => {
+const generatePrompt: GeneratePromptReq = async ({ userInput, chatHistory }) => {
   // const character = characterScriptBuilder(characterJson);
   const messages = [
     ...chatHistory,
-    new ChatCompletionRequestMessageClass('user', userInput, playerName),
+    new ChatCompletionRequestMessageClass('user', userInput),
   ] as Array<ChatCompletionRequestMessage>;
 
   return { messages };
@@ -39,9 +38,9 @@ const createCompletion = async ({ messages }: { messages: Array<ChatCompletionRe
       temperature: 0.5,
     })
     .catch((err) => {
-      console.log(err.response.data.error);
+      console.log(err?.response?.data?.error);
 
-      throw new Error(err.response.data.error || err);
+      throw new Error(err.response.data.error.message || err);
     });
 
   return response.data;

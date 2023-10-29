@@ -97,7 +97,7 @@ const outputBillingEvent = async (inputData) => {
 const updateBilling = async ({ accountId }, { prompt_tokens, completion_tokens, total_tokens } = {}) => {
   logDebug(
     `updateBilling ${accountId}:
-     prompt_tokens: ${prompt_tokens}; completion_tokens: ${completion_tokens}; total_tokens: ${total_tokens}`,
+    prompt_tokens: ${prompt_tokens}; completion_tokens: ${completion_tokens}; total_tokens: ${total_tokens}`,
   );
 
   const updateBody = {
@@ -106,7 +106,7 @@ const updateBilling = async ({ accountId }, { prompt_tokens, completion_tokens, 
   const updateBodyDaily = {
     $push: {
       dailyValues: {
-        date: new Date() + 1, // Current date
+        date: new Date(), // Current date
         inputWords: prompt_tokens + 4, // Replace with the actual input value for the day
         outputWords: completion_tokens + 5, // Replace with the actual output value for the day
       },
