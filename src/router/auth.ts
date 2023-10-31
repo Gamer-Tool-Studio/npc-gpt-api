@@ -9,11 +9,23 @@ const { logDebug, logError } = require('src/core-services/logFunctionFactory').g
 
 const router = Router();
 
-router.get('/check', (req, res) => {
-  res.status(200).json({
+router.get('/check', async (req, res) => {
+  const { user } = req;
+
+  if (!user) {
+    return res.status(401).json({ error: 'Not registered' });
+  }
+
+  const filter = ['id', 'username', 'email'];
+  const userFiltered = filterObject(user as unknown as Record<string, unknown>, filter);
+  logDebug(' ****user **** after', userFiltered);
+
+  const tokenObject = await issueTokenForUser(userFiltered);
+
+  return res.status(200).json({
+    token: tokenObject.token,
+    expiresIn: tokenObject.expires,
     isAuthenticated: true,
-    token: 'token',
-    user: req.user,
   });
 });
 

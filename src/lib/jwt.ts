@@ -8,8 +8,8 @@ const { TOKEN_SECRET } = require('~/config');
  * @param {*} expiresIn expiring period
  * @param {*} payloadValues other props to be added
  */
-exports.issueJWT = (username: string, payloadValues: any, expiresIn = '1800s') => {
-  logDebug(`username is ${username}`);
+exports.issueJWT = (username: string, payloadValues: any, expiresIn: string | number) => {
+  logDebug(`username is ${username}, expires in ${expiresIn}`);
   const payload = {
     sub: username,
     ...payloadValues,

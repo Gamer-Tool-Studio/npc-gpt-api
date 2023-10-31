@@ -123,16 +123,14 @@ const Database = {
         // Fill in the actual data where it exists
         monthlyData.forEach((entry) => {
           const dayOfMonth = new Date(entry.date).getDate();
-          console.log('dayOfMonth:', entry, dayOfMonth);
 
           input[dayOfMonth - 1] += entry.input;
           output[dayOfMonth - 1] += entry.output;
         });
 
         return { input, output }; // Total value for the specified year and month
-      } else {
-        return 0; // No data found for the specified year and month
       }
+      return 0; // No data found for the specified year and month
     } catch (err) {
       console.error('Error retrieving data:', err);
       throw err;
