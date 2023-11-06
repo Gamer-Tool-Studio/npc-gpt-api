@@ -9,4 +9,5 @@ export type CharacterType = {
   'game knowledge': string;
   interests: Record<string, number>;
   supportiveness: number;
+  maxOutputWords: number;
 };
