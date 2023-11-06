@@ -7,6 +7,13 @@ const { logDebug, logError } = require('src/core-services/logFunctionFactory').g
 
 const router = Router();
 
+interface KeysInfo {
+  name: string;
+  key: string;
+  created: Date;
+  used: string;
+}
+
 /**
  *  User profile
  */
@@ -24,10 +31,19 @@ router.get('/profile', (req: Request, res: Response) => {
 
         break;
       case 'local': {
-        const filter = ['id', 'username', 'email'];
+        const filter = ['id', 'username', 'email', 'tokens'];
         const userFiltered = filterObject(req.user as unknown as Record<string, unknown>, filter);
         logDebug(' ****user **** after', userFiltered);
         mappedUser = { ...userFiltered };
+
+        const tokens = mappedUser.tokens as string[];
+        mappedUser.keys = tokens.map((token: string) => ({
+          name: token,
+          key: token.slice(0, 7),
+          created: new Date(),
+          used: 'Never',
+        })) as [KeysInfo];
+        delete mappedUser.tokens;
 
         break;
       }
