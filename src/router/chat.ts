@@ -7,11 +7,15 @@ import { isArrayOf } from 'src/lib/util';
 import { ChatCompletionRequestMessage } from 'openai';
 import { ChatCompletionRequestMessageClass } from 'src/types/openai.types';
 import { updateBilling } from 'src/services/billing';
+import { verifyApiToken } from 'src/services/auth';
 
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('chat');
 
 const router = Router();
 
+/**
+ * @deprecated
+ */
 router.get('/list-engines', async (req: Request, res: Response) => {
   try {
     const engines = await listEngines();
@@ -22,7 +26,7 @@ router.get('/list-engines', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/send-message', async (req: Request, res: Response) => {
+router.post('/send-message', verifyApiToken, async (req: Request, res: Response) => {
   const params = ['userInput', 'chatHistory'];
   try {
     parameterValidator(req.body, params);
@@ -78,6 +82,9 @@ router.post('/send-message', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @deprecated
+ */
 router.post('/generate-prompt', async (req: Request, res: Response) => {
   const characterJson = req.body;
 

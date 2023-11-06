@@ -10,6 +10,7 @@ const UserSchema = new Schema(
     type: String,
     photo: String,
     user_data: String,
+    tokens: [String],
   },
   { collection: 'user', versionKey: false },
 );

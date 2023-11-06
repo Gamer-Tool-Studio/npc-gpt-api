@@ -1,5 +1,3 @@
-import { NextFunction, Response, Request } from 'express';
-
 export function hasSameProperties<T extends object>(obj: T, keys: Array<keyof T>): boolean {
   const typeKeys = Object.keys(obj) as Array<keyof T>;
   return keys.every((key) => {
@@ -66,11 +64,4 @@ export function filterObject(raw: Record<string, unknown>, allowed: string[]) {
       obj[key] = raw[key];
       return obj;
     }, {});
-}
-
-export function checkAuthenticated(req: Request, res: Response, next: NextFunction) {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  return res.status(401).send('Unauthorized');
 }

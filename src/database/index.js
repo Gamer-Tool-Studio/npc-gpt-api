@@ -30,6 +30,12 @@ let Redis = {};
 // }
 
 const Database = {
+  createTokenMap: (data, options) => {
+    return mongoDB.token.create(data, options);
+  },
+  findToken: (filter, select, options) => {
+    return mongoDB.token.findOne(filter, select, options);
+  },
   createAccount: (data, options) => {
     return mongoDB.account.create(data, options);
   },

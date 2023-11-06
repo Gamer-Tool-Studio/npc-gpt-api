@@ -2,10 +2,11 @@ import { Router, Request, Response } from 'express';
 import parameterValidator from 'src/core-services/parameterValidator';
 import passport from 'passport';
 import { filterObject } from 'src/lib/util';
-import { issueTokenForUser } from 'src/services/auth';
+import { issueApiToken, issueTokenForUser, registerApiToken } from 'src/services/auth';
+import { issueJWT, verifyJWT } from 'src/lib/jwt';
 
 const { createAccount, registerUser } = require('src/services/auth');
-const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('auth');
+const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('router:auth');
 
 const router = Router();
 
@@ -94,18 +95,40 @@ router.post('/local/login', passport.authenticate('local'), async (req: Request,
   // return res.json({ user: { ...userFiltered } });
 });
 
-router.post('/gen-auth', async (req: Request, res: Response) => {
+router.post('/gen-key', async (req: Request, res: Response) => {
   try {
     logDebug(' **** Auth token route **** ');
+    const { user } = req;
+    const filter = ['id', 'username', 'email'];
+    const userFiltered = filterObject(user as unknown as Record<string, unknown>, filter);
+    logDebug(' ****user **** after', userFiltered);
 
-    logDebug(' **** locals ', res.locals.username, ' auth token ', res.locals.authToken);
+    const { token } = await issueApiToken();
+
+    const jwtPayload = {
+      accountId: userFiltered.id,
+      token,
+    };
+    const { token: jwt } = await issueJWT(userFiltered.id as string, jwtPayload, '999years');
+    logDebug('jwt', jwt);
+
+    // TODO: store api key on user db and keys db to use on mapping
+
+    const result = await registerApiToken(user?.id, token, jwt);
+    logDebug('result', result);
+
+    const verify = await verifyJWT(jwt);
+    logDebug('verify', verify);
+    if (!verify) {
+      res.status(401).json('Unauthorized');
+    }
 
     res.json({
-      token: res.locals.authToken,
-      username: res.locals.username,
+      token,
+      jwt,
     });
   } catch (ex) {
-    logError('get todo ', ex);
+    logError('/gen-key ', ex);
     res.status(500).json({ error: ex });
   }
 });
