@@ -16,35 +16,29 @@ const options = { upsert: true, new: true };
  * - add entry to billing day input
  * - increase total billing input
  */
-const inputBillingEvent = async (inputData) => {
-  const wordsCount = countWords(
-    inputData.messageIn || 'ola este e só para testar, vamos ver quantas palavras é que isto manja! ',
+const updateBilling = async ({ accountId }, { prompt_tokens, completion_tokens, total_tokens } = {}) => {
+  logDebug(
+    `updateBilling ${accountId}:
+    prompt_tokens: ${prompt_tokens}; completion_tokens: ${completion_tokens}; total_tokens: ${total_tokens}`,
   );
-
-  logDebug('********* inputBillingEvent service **********', inputData.messageIn);
-  logDebug('Total Words #', wordsCount);
-
   const today = new Date();
-  const day = today.getDate();
-  const month = today.getMonth() + 1;
-  const year = today.getFullYear();
+  const day = today.getDate().toString();
+  const month = (today.getMonth() + 1).toString();
+  const year = today.getFullYear().toString();
   const key = day + month + year;
+  logDebug('day key', key);
 
   // increment billing log
   const updateBody = {
-    $inc: { totalInputWords: wordsCount },
+    $inc: { inputWords: prompt_tokens, outputWords: completion_tokens },
   };
   // const options = { upsert: true };
-  const result = await DB.findAndUpdateBillingLog({ accountId: inputData.accountId }, updateBody, options);
+  const result = await DB.findAndUpdateBillingLog({ accountId }, updateBody, options);
   // increment billing with day key
-  const billingDayKey = await DB.findAndUpdateBillingDay(
-    { key, accountId: inputData.accountId },
-    { $inc: { inputWords: wordsCount } },
-    options,
-  );
+  const billingDayKey = await DB.findAndUpdateBillingDay({ key, accountId }, updateBody, options);
 
   try {
-    return { data: wordsCount, result, billingDayKey };
+    return { result, billingDayKey };
   } catch (ex) {
     logError('Error validating data ', ex);
     throw ex;
@@ -94,7 +88,7 @@ const outputBillingEvent = async (inputData) => {
 };
 
 //   usage: { prompt_tokens: 261, completion_tokens: 60, total_tokens: 321 }
-const updateBilling = async ({ accountId }, { prompt_tokens, completion_tokens, total_tokens } = {}) => {
+const updateBillingOld = async ({ accountId }, { prompt_tokens, completion_tokens, total_tokens } = {}) => {
   logDebug(
     `updateBilling ${accountId}:
     prompt_tokens: ${prompt_tokens}; completion_tokens: ${completion_tokens}; total_tokens: ${total_tokens}`,
@@ -107,8 +101,8 @@ const updateBilling = async ({ accountId }, { prompt_tokens, completion_tokens, 
     $push: {
       dailyValues: {
         date: new Date(), // Current date
-        inputWords: prompt_tokens + 4, // Replace with the actual input value for the day
-        outputWords: completion_tokens + 5, // Replace with the actual output value for the day
+        inputWords: prompt_tokens, // Replace with the actual input value for the day
+        outputWords: completion_tokens, // Replace with the actual output value for the day
       },
     },
   };
@@ -128,4 +122,4 @@ const updateBilling = async ({ accountId }, { prompt_tokens, completion_tokens, 
   }
 };
 
-module.exports = { inputBillingEvent, outputBillingEvent, updateBilling };
+module.exports = { outputBillingEvent, updateBilling, updateBillingOld };

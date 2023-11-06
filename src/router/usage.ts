@@ -1,12 +1,11 @@
 import { Router, Request, Response } from 'express';
-import { checkAuthenticated } from 'src/lib/util';
 import DB from 'src/database';
 
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('usage');
 
 const router = Router();
 
-router.post('/perMonth', checkAuthenticated, async (req: Request, res: Response) => {
+router.post('/perMonth', async (req: Request, res: Response) => {
   try {
     logDebug(' **** Token Monthly Usage **** ');
 
@@ -25,22 +24,54 @@ router.post('/perMonth', checkAuthenticated, async (req: Request, res: Response)
   }
 });
 
-router.post('/perDay', checkAuthenticated, async (req: Request, res: Response) => {
+router.post('/perDay', async (req: Request, res: Response) => {
   try {
     logDebug(' **** Token Daily Usage **** ', req.user);
     const { year, month, accountId } = req.body as { year: number; month: number; accountId: string };
     logDebug(' **** MONTH ', month, year, accountId);
 
-    const savedUser = await DB.findBillingDay({ accountId });
+    const savedUser = await DB.findBillingDay({
+      accountId,
+      createdAt: { $gte: new Date(year, month, 1), $lt: new Date(year, month + 1, 1) },
+    });
     logDebug(' **** savedUser ', savedUser);
-    const savedUserAggregate = await DB.findBillingDayAggregate(year, month + 1, accountId);
-    logDebug(' **** savedUserAggregate ', savedUserAggregate);
+    const numberOfDaysInMonth = new Date(year, month, 0).getDate(); // Calculate the number of days in the specified month
+
+    const input = Array(numberOfDaysInMonth).fill(0);
+    const output = Array(numberOfDaysInMonth).fill(0);
+
+    // Fill in the actual data where it exists
+    savedUser.forEach((entry: any) => {
+      const dayOfMonth = new Date(entry.createdAt).getDate();
+      logDebug(' **** entry ', entry);
+
+      input[dayOfMonth - 1] = entry.inputWords || 0;
+      output[dayOfMonth - 1] = entry.outputWords || 0;
+    });
+
+    // {
+    //   input: [
+    //     0,   0, 0,   0, 0, 0, 0, 0, 0,
+    //     0,   0, 0,   0, 0, 0, 0, 0, 0,
+    //     0,   0, 0,   0, 0, 0, 0, 0, 0,
+    //     0, 410, 0, 820
+    //   ],
+    //   output: [
+    //     0,  0, 0,   0, 0, 0, 0, 0, 0,
+    //     0,  0, 0,   0, 0, 0, 0, 0, 0,
+    //     0,  0, 0,   0, 0, 0, 0, 0, 0,
+    //     0, 65, 0, 130
+    //   ]
+    // }
+
+    // const savedUserAggregate = await DB.findBillingDayAggregate(year, month + 1, accountId);
+    // logDebug(' **** savedUserAggregate ', savedUserAggregate);
     const { totalInputWords, totalOutputWords } = (await DB.findBillingLog({ accountId })) || {};
 
     const usage = { totalInputWords, totalOutputWords };
 
     res.json({
-      monthly: savedUserAggregate,
+      monthly: { input, output },
       usage,
     });
   } catch (ex) {
