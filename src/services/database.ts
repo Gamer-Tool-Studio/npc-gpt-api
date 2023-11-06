@@ -31,6 +31,7 @@ const getCharacterJson: GetCharacterJson = async (a) => {
         Cars: 9,
       },
       supportiveness: 5,
+      maxOutputWords: 400,
     },
   };
 };
