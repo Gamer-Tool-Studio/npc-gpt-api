@@ -29,7 +29,7 @@ export function issueJWT(accountId: string, payloadValues: any, expiresIn: strin
   };
 }
 
-export function verifyJWT(token: string) {
+export function verifyJWT(token: string | undefined) {
   try {
     const result = jwt.verify(token, TOKEN_SECRET);
     logDebug('verify result: ', result);

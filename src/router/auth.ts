@@ -5,6 +5,7 @@ import { filterObject } from 'src/lib/util';
 import { issueApiToken, issueTokenForUser, registerApiToken } from 'src/services/auth';
 import { issueJWT, verifyJWT } from 'src/lib/jwt';
 
+const DB = require('src/database');
 const { createAccount, registerUser } = require('src/services/auth');
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('router:auth');
 
@@ -71,27 +72,38 @@ router.post('/local/register', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/local/login', passport.authenticate('local'), async (req: Request, res: Response) => {
+// TODO: refactor
+router.post('/local/login', async (req: Request, res: Response) => {
   logDebug(' **** login route **** ', req.user);
+  try {
+    const { username, password } = req.body;
+    logDebug('username: ', username);
+    logDebug('password: ', password);
+    const user = await DB.findSingleUser({ username }, null, null);
+    logDebug('ok!! ', user.toJSON());
 
-  const { user } = req;
+    if (!user) {
+      res.status(403).json({ error: 'login user error', user: 'user' });
+    }
 
-  if (!user) {
-    return res.status(401).json({ error: 'Not registered' });
+    if (!user.verifyPassword(password)) {
+      res.status(403).json({ error: 'login password error', WRONG_PASSWORD: 'password' });
+    }
+
+    const filter = ['id', 'username', 'email'];
+    const userFiltered = filterObject(user.toJSON() as unknown as Record<string, unknown>, filter);
+    logDebug(' ****user **** after', userFiltered);
+
+    const tokenObject = await issueTokenForUser(userFiltered);
+
+    return res.status(200).json({
+      success: true,
+      token: tokenObject.token,
+      expiresIn: tokenObject.expires,
+    });
+  } catch (err) {
+    logDebug(err);
   }
-
-  const filter = ['id', 'username', 'email'];
-  const userFiltered = filterObject(user as unknown as Record<string, unknown>, filter);
-  logDebug(' ****user **** after', userFiltered);
-
-  const tokenObject = await issueTokenForUser(userFiltered);
-
-  return res.status(200).json({
-    success: true,
-    token: tokenObject.token,
-    expiresIn: tokenObject.expires,
-  });
-
   // return res.json({ user: { ...userFiltered } });
 });
 

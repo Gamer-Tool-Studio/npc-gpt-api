@@ -3,12 +3,30 @@ const { logDebug } = require('src/core-services/logFunctionFactory').getLogger('
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
+
 const DB = require('src/database');
-const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALLBACK } = require('~/config');
+const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALLBACK, TOKEN_SECRET } = require('~/config');
 
 const router = Router();
 router.use(passport.initialize());
 router.use(passport.session());
+
+const JwtOptions = {
+  secretOrKey: TOKEN_SECRET,
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  passReqToCallback: true,
+};
+
+passport.use(
+  new JwtStrategy(JwtOptions, async ({ path }, payload, done) => {
+    logDebug('User JWT', path, payload, done);
+    return done(null, {
+      ...payload,
+      strategy: 'jwt',
+    });
+  }),
+);
 
 // google strategy
 // http://localhost:3002/api/v1/auth/google/login

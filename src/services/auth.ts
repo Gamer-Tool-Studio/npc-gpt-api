@@ -141,9 +141,7 @@ export const issueTokenForUser = async (userDetails: any) => {
   return issueJWT(
     // eslint-disable-next-line no-underscore-dangle
     userDetails.id,
-    {
-      userDetails,
-    },
+    userDetails,
     '24h',
   );
 };
