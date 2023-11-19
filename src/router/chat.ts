@@ -7,7 +7,6 @@ import { isArrayOf } from 'src/lib/util';
 import { ChatCompletionRequestMessage } from 'openai';
 import { ChatCompletionRequestMessageClass } from 'src/types/openai.types';
 import { updateBilling } from 'src/services/billing';
-import { verifyApiToken } from 'src/services/auth';
 
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('chat');
 
@@ -26,12 +25,12 @@ router.get('/list-engines', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/send-message', verifyApiToken, async (req: Request, res: Response) => {
+router.post('/send-message', async (req: Request, res: Response) => {
   const params = ['userInput', 'chatHistory'];
   try {
     parameterValidator(req.body, params);
 
-    const { userInput, accountId } = req.body;
+    const { userInput } = req.body;
     let { chatHistory } = req.body as { chatHistory: Array<ChatCompletionRequestMessage> };
 
     // TODO: when does the character is initiated
@@ -64,7 +63,7 @@ router.post('/send-message', verifyApiToken, async (req: Request, res: Response)
     logDebug('Response createCompletion:', response);
 
     // TODO: Update billing
-    const updateBillingRes = await updateBilling({ accountId }, response.usage);
+    const updateBillingRes = await updateBilling({ accountId: req.user?.id }, response.usage);
     logDebug('send-message inputBillingEvent res:', updateBillingRes);
     // res.json({ response: 'generatedResponse', chatHistory: [...messages, 'generatedResponse'] });
 
