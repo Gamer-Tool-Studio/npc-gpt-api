@@ -77,17 +77,14 @@ router.post('/local/login', async (req: Request, res: Response) => {
   logDebug(' **** login route **** ', req.user);
   try {
     const { username, password } = req.body;
-    logDebug('username: ', username);
-    logDebug('password: ', password);
     const user = await DB.findSingleUser({ username }, null, null);
-    logDebug('ok!! ', user.toJSON());
 
     if (!user) {
-      res.status(403).json({ error: 'login user error', user: 'user' });
+      res.status(403).json({ error: 'login user error', user: 'User not found' });
     }
 
     if (!user.verifyPassword(password)) {
-      res.status(403).json({ error: 'login password error', WRONG_PASSWORD: 'password' });
+      res.status(403).json({ error: 'login password error', msg: 'WRONG_PASSWORD' });
     }
 
     const filter = ['id', 'username', 'email'];
@@ -103,8 +100,8 @@ router.post('/local/login', async (req: Request, res: Response) => {
     });
   } catch (err) {
     logDebug(err);
+    return res.status(500).json({ error: 'Error in login' });
   }
-  // return res.json({ user: { ...userFiltered } });
 });
 
 router.post('/gen-key', async (req: Request, res: Response) => {
@@ -118,7 +115,7 @@ router.post('/gen-key', async (req: Request, res: Response) => {
     const { token } = await issueApiToken();
 
     const jwtPayload = {
-      accountId: userFiltered.id,
+      id: userFiltered.id,
       token,
     };
     const { token: jwt } = await issueJWT(userFiltered.id as string, jwtPayload, '999years');

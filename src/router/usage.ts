@@ -31,7 +31,7 @@ router.post('/perDay', async (req: Request, res: Response) => {
     logDebug(' **** MONTH ', month, year, accountId);
 
     const savedUser = await DB.findBillingDay({
-      accountId,
+      accountId: req.user?.id,
       createdAt: { $gte: new Date(year, month, 1), $lt: new Date(year, month + 1, 1) },
     });
     logDebug(' **** savedUser ', savedUser);
@@ -66,7 +66,7 @@ router.post('/perDay', async (req: Request, res: Response) => {
 
     // const savedUserAggregate = await DB.findBillingDayAggregate(year, month + 1, accountId);
     // logDebug(' **** savedUserAggregate ', savedUserAggregate);
-    const { totalInputWords, totalOutputWords } = (await DB.findBillingLog({ accountId })) || {};
+    const { totalInputWords, totalOutputWords } = (await DB.findBillingLog({ accountId: req.user?.id })) || {};
 
     const usage = { totalInputWords, totalOutputWords };
 

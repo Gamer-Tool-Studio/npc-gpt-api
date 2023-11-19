@@ -106,6 +106,12 @@ export const issueApiToken = async () => {
   }
 };
 
+export async function getApiToken(token: string) {
+  const { jwt } = await DB.findToken({ token });
+  logDebug('jwt', jwt);
+  return jwt;
+}
+
 export async function verifyApiToken(req: Request, res: Response, next: NextFunction) {
   logDebug('********* verifyApiToken method **********', req.user);
   try {
@@ -128,8 +134,6 @@ export async function verifyApiToken(req: Request, res: Response, next: NextFunc
       return next();
     }
     return res.status(401).send('Unauthorized');
-
-    // eslint-disable-next-line no-unreachable
   } catch (ex) {
     logError('Error verifyApiToken ', ex);
     throw ex;
@@ -138,10 +142,5 @@ export async function verifyApiToken(req: Request, res: Response, next: NextFunc
 
 export const issueTokenForUser = async (userDetails: any) => {
   // Issues token
-  return issueJWT(
-    // eslint-disable-next-line no-underscore-dangle
-    userDetails.id,
-    userDetails,
-    '24h',
-  );
+  return issueJWT(userDetails.id, userDetails, '24h');
 };
