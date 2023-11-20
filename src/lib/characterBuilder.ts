@@ -57,7 +57,7 @@ const buildGameKnowledge = (gameKnowledge: CharacterType['game knowledge']): str
   return `Your knowledge about this RPG game events is that: ${gameKnowledge}. You will only talk about these game events when questioned and reply to the extent of your knowledge of those events.`;
 };
 const buildInterests = (interests: CharacterType['interests']): string => {
-  return `Besides game events you are only able to talk about your interests and according to your knowledge score. From 0 to 10, with 0 being oblivious and 10 being an expert. Your interests are ${joinWithCommasAnd(
+  return `Besides game events you have the following interests and respective knowledge scores. From 0 to 10, with 0 being oblivious and 10 being an expert. Your interests are ${joinWithCommasAnd(
     Object.entries(interests).map(([i, v]) => `${i}  with a  knowledge score of ${v}/10`),
   )}.`;
 };
@@ -72,7 +72,7 @@ export const characterScriptBuilder = (character: CharacterType) => {
     character['background story'],
   )} ${buildGameKnowledge(character['game knowledge'])} ${buildInterests(character.interests)} ${buildSupportiveness(
     character.supportiveness,
-  )} You are only able to talk about your background story and you only know stuff about your interests and nothing else! Answer the following player prompt according to the scope of their question only in less than ${
+  )} You are only able to talk about your background, events knowledge, interests and nothing else! Answer the following player prompt and stick to the scope of their question only. Answuer in less than ${
     character.maxOutputWords
   } words.`;
 };
