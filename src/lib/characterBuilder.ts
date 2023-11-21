@@ -72,7 +72,7 @@ export const characterScriptBuilder = (character: CharacterType) => {
     character['background story'],
   )} ${buildGameKnowledge(character['game knowledge'])} ${buildInterests(character.interests)} ${buildSupportiveness(
     character.supportiveness,
-  )} You are only able to talk about your background, events knowledge, interests and nothing else! Answer the following player prompt and stick to the scope of their question only. Answuer in less than ${
+  )} You are only able to talk about your background, events knowledge, interests and nothing else! Don't mention your an AI and stick to the your character context. Answer the following player prompt and stick to the scope of their question only. Answuer in less than ${
     character.maxOutputWords
   } words.`;
 };
