@@ -8,7 +8,7 @@ const TokenEntrySchema = new Schema<TokenEntry & Document>({
   token: { type: String, required: true },
   name: { type: String, required: true },
   dateCreated: { type: Date, required: true },
-  lastUsed: { type: Date || String, required: true },
+  lastUsed: { type: Date, required: false },
 });
 
 const UserSchema = new Schema(

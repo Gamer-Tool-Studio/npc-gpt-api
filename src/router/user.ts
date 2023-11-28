@@ -41,7 +41,7 @@ router.get('/profile', async (req: Request, res: Response) => {
           name,
           key: `${token.slice(0, 12)}...`,
           dateCreated,
-          lastUsed,
+          lastUsed: lastUsed || 'Not used',
         }));
         delete mappedUser.tokens;
 

@@ -27,8 +27,6 @@ function loadModels() {
       const schemaFile =
         // eslint-disable-next-line import/no-dynamic-require, global-require
         extension === '.ts' ? await require(`./schemas/${file}`).default : await require(`./schemas/${file}`);
-      logDebug('schema', schema);
-      logDebug('schemaFile', schemaFile);
 
       mongoModels[schema] = mongoose.model(schema, schemaFile);
       // eslint-disable-next-line no-console

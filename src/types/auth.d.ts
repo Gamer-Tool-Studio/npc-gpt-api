@@ -5,5 +5,5 @@ export type TokenEntry = {
   token: string;
   name: string;
   dateCreated: Date;
-  lastUsed?: Date | string = 'Not used';
+  lastUsed?: Date | string;
 };

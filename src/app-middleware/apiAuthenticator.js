@@ -14,6 +14,7 @@ const authRoutes = [
   '/api/v1/auth/check',
   '/api/v1/usage/perDay',
   '/api/v1/auth/gen-key',
+  '/api/v1/auth/edit-token',
 ];
 
 const signValidatorHandler = async (req, res, next) => {

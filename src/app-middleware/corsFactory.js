@@ -15,7 +15,7 @@ module.exports = function corsFactory(config) {
     origin = origin === 'true' ? JSON.parse(origin) : origin;
     const allowedHeaders = parseValues(config.allowedHeaders);
     corsOpts = {
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
       // preflightContinue: true,
       allowedHeaders,
       credentials: true,

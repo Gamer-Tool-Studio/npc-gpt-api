@@ -146,22 +146,28 @@ router.get('/gen-key', async (req: Request, res: Response) => {
   }
 });
 
-// router.post('/login', async (req: Request, res: Response) => {
-//   try {
-//     logDebug(' **** login **** ');
+router.patch('/edit-token', async (req: Request, res: Response) => {
+  try {
+    logDebug(' **** req.query **** ', req.query);
+    const userId = req.user?.id;
+    const { id: tokenId, name } = req.query;
 
-//     logDebug(' **** locals ', res.locals.username, ' auth token ', res.locals.authToken);
+    const user = await DB.UpdateOneUser(
+      { _id: userId, 'tokens.id': tokenId },
+      {
+        $set: {
+          'tokens.$.name': name, // Update other fields as needed
+        },
+      },
+    );
+    logDebug(' ****user**** ', user);
 
-//     const authToken = await authLogin();
-
-//     res.status(200).json({
-//       token: authToken,
-//     });
-//   } catch (ex) {
-//     logError('login error ', ex);
-//     res.status(500).json({ error: ex });
-//   }
-// });
+    res.status(200).send('Token updated');
+  } catch (ex) {
+    logError('edit-token ', ex);
+    res.status(500).json({ error: ex });
+  }
+});
 
 router.post('/reset-secret', async (req: Request, res: Response) => {
   try {
