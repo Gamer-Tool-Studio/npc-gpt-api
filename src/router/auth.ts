@@ -104,10 +104,13 @@ router.post('/local/login', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/gen-key', async (req: Request, res: Response) => {
+router.get('/gen-key', async (req: Request, res: Response) => {
   try {
     logDebug(' **** Auth token route **** ');
     const { user } = req;
+    const { name = 'Default Name' } = req.query as unknown as { name: string };
+    logDebug(' ****name ****', name);
+
     const filter = ['id', 'username', 'email'];
     const userFiltered = filterObject(user as unknown as Record<string, unknown>, filter);
     logDebug(' ****user **** after', userFiltered);
@@ -123,7 +126,7 @@ router.post('/gen-key', async (req: Request, res: Response) => {
 
     // TODO: store api key on user db and keys db to use on mapping
 
-    const result = await registerApiToken(user?.id, token, jwt);
+    const result = await registerApiToken(user?.id, token, jwt, name);
     logDebug('result', result);
 
     const verify = await verifyJWT(jwt);
@@ -135,6 +138,7 @@ router.post('/gen-key', async (req: Request, res: Response) => {
     res.json({
       token,
       jwt,
+      name,
     });
   } catch (ex) {
     logError('/gen-key ', ex);

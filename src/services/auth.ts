@@ -1,5 +1,7 @@
+import { randomUUID } from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 import { verifyJWT } from 'src/lib/jwt';
+import { TokenEntry } from 'src/types/auth';
 
 const DB = require('src/database');
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('service:auth');
@@ -49,7 +51,7 @@ export const registerUser = async (data: any) => {
 
   const passwordHash = bcrypt.hashSync(data.password, bcrypt.genSaltSync(10), null);
   const newUser = await DB.registerUser({ ...data, password: passwordHash });
-  logDebug('Created user', newUser);
+  logDebug('Created user', newUser.toJSON());
 
   try {
     return newUser;
@@ -81,11 +83,28 @@ export const resetApiKey = async () => {
     throw ex;
   }
 };
-export const registerApiToken = async (accountId: string | undefined, token: string, jwt: JsonWebKey) => {
+export const registerApiToken = async (
+  accountId: string | undefined,
+  token: string,
+  jwt: JsonWebKey,
+  name = 'Default Name',
+) => {
   logDebug('********* registerApiToken method **********', accountId);
   try {
     const newTokenMap = await DB.createTokenMap({ token, jwt });
-    const updatedUser = await DB.findUserAndUpdate({ _id: accountId }, { $push: { tokens: token } }, { upsert: true });
+
+    const tokenEntry: TokenEntry = {
+      id: randomUUID(),
+      token,
+      name,
+      dateCreated: new Date(),
+    };
+
+    const updatedUser = await DB.findUserAndUpdate(
+      { _id: accountId },
+      { $push: { tokens: tokenEntry } },
+      { upsert: true },
+    );
 
     return { newTokenMap, updatedUser };
   } catch (ex) {
