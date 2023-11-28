@@ -20,11 +20,15 @@ function loadModels() {
 
   fs.readdirSync(pathSchemas).forEach(async (file: string) => {
     const extension = file.slice(file.length - 3, file.length);
-    if (file === 'index.ts' || extension !== '.js') return;
+    if (file === 'index.ts' || !['.js', '.ts'].includes(extension)) return;
     try {
       const schema = file.slice(0, file.length - 3);
-      // eslint-disable-next-line import/no-dynamic-require, global-require
-      const schemaFile = await require(`./schemas/${file}`);
+      // eslint-disable-next-line operator-linebreak
+      const schemaFile =
+        // eslint-disable-next-line import/no-dynamic-require, global-require
+        extension === '.ts' ? await require(`./schemas/${file}`).default : await require(`./schemas/${file}`);
+      logDebug('schema', schema);
+      logDebug('schemaFile', schemaFile);
 
       mongoModels[schema] = mongoose.model(schema, schemaFile);
       // eslint-disable-next-line no-console
@@ -36,6 +40,7 @@ function loadModels() {
 
 export = (url: string) => {
   try {
+    logDebug('uurl', url);
     mongoose.connect(url, {
       useNewUrlParser: true,
       useUnifiedTopology: true,

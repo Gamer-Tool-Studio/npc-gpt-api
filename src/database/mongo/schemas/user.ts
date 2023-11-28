@@ -1,5 +1,15 @@
-const { Schema } = require('mongoose');
+import { Document, Schema } from 'mongoose';
+import { TokenEntry } from 'src/types';
+
 const bcrypt = require('bcryptjs');
+
+const TokenEntrySchema = new Schema<TokenEntry & Document>({
+  id: { type: String, required: true },
+  token: { type: String, required: true },
+  name: { type: String, required: true },
+  dateCreated: { type: Date, required: true },
+  lastUsed: { type: Date || String, required: true },
+});
 
 const UserSchema = new Schema(
   {
@@ -10,7 +20,8 @@ const UserSchema = new Schema(
     type: String,
     photo: String,
     user_data: String,
-    tokens: [String],
+    tokens: [TokenEntrySchema],
+    organization: { type: Schema.Types.ObjectId, ref: 'organization' },
   },
   { collection: 'user', versionKey: false },
 );
@@ -26,11 +37,11 @@ UserSchema.set('timestamps', true);
 //   newUser.password = bcrypt.hashSync(newUser.password, bcrypt.genSaltSync(10), null);
 // });
 
-UserSchema.methods.verifyPassword = function verifyPassword(pw) {
+UserSchema.methods.verifyPassword = function verifyPassword(pw: string) {
   return bcrypt.compareSync(pw, this.password);
 };
 
-UserSchema.methods.setPassword = function setPassword(pw) {
+UserSchema.methods.setPassword = function setPassword(pw: string) {
   this.password = bcrypt.hashSync(pw, bcrypt.genSaltSync(10), null);
 };
 
@@ -42,4 +53,4 @@ UserSchema.set('toJSON', {
   },
 });
 
-module.exports = UserSchema;
+export default UserSchema;

@@ -2,7 +2,7 @@ const { Schema } = require('mongoose');
 
 const TotalBillingDaySchema = new Schema(
   {
-    accountId: String,
+    accountId: { type: Schema.Types.ObjectId, ref: 'user' },
     totalInputWords: {
       type: Number,
       default: 1,
