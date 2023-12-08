@@ -79,6 +79,11 @@ const env = {
     type: 'string',
     required: true,
   },
+  ALLOW_REGISTER: {
+    env: 'ALLOW_REGISTER',
+    type: 'boolean',
+    default: false,
+  },
 };
 
 const loggerEnv = {

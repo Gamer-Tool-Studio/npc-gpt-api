@@ -8,6 +8,7 @@ import { issueJWT, verifyJWT } from 'src/lib/jwt';
 const DB = require('src/database');
 const { createAccount, registerUser } = require('src/services/auth');
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('router:auth');
+const { ALLOW_REGISTER } = require('~/config');
 
 const router = Router();
 
@@ -59,16 +60,17 @@ router.get('/google/login', passport.authenticate('google', { scope: ['profile',
  * */
 
 router.post('/local/register', async (req: Request, res: Response) => {
+  if (!ALLOW_REGISTER) return res.status(403).json({ error: 'Register currently disabled' });
   try {
     logDebug(' **** register route **** ');
     const params = ['username', 'password', 'email'];
     parameterValidator(req.body, params);
 
     const newUser = await registerUser(req.body);
-    res.json({ user: newUser });
+    return res.json({ user: newUser });
   } catch (ex) {
     logError('issue register new user ', ex);
-    res.status(500).json({ error: ex });
+    return res.status(500).json({ error: ex });
   }
 });
 
