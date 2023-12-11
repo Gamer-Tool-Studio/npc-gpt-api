@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import parameterValidator from 'src/core-services/parameterValidator';
 import passport from 'passport';
 import { filterObject } from 'src/lib/util';
-import { issueApiToken, issueTokenForUser, registerApiToken } from 'src/services/auth';
+import { getApiToken, issueApiToken, issueTokenForUser, registerApiToken } from 'src/services/auth';
 import { issueJWT, verifyJWT } from 'src/lib/jwt';
 
 const DB = require('src/database');
@@ -32,14 +32,26 @@ router.get('/check', async (req, res) => {
   });
 });
 
-router.get('/getData', async (req: Request, res: Response) => {
+router.post('/validate-token', async (req: Request, res: Response) => {
   try {
-    logDebug(' **** getData route **** ');
-    res.json({
-      token: req.user,
-    });
+    logDebug(' **** validate-token route **** ');
+
+    const { token } = req.body;
+    logDebug(' **** token **** ', token);
+
+    if (token) {
+      const jwt = await getApiToken(String(token));
+      if (!jwt) {
+        res.status(401).json('Unauthorized');
+      }
+      logDebug(' **** jwt **** ', jwt);
+
+      res.status(200).end();
+    } else {
+      res.status(401).json('Unauthorized');
+    }
   } catch (ex) {
-    logError('/getData', ex);
+    logError('/validate-token', ex);
     res.status(500).json({ error: ex });
   }
 });

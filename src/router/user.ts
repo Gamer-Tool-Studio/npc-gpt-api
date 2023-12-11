@@ -39,7 +39,7 @@ router.get('/profile', async (req: Request, res: Response) => {
         mappedUser.keys = tokens.map(({ id, name, lastUsed, dateCreated, token }: TokenEntry) => ({
           id,
           name,
-          key: `${token.slice(0, 12)}...`,
+          key: `${token?.slice(0, 12)}...`,
           dateCreated,
           lastUsed: lastUsed || 'Not used',
         }));

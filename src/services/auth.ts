@@ -1,5 +1,4 @@
 import { randomUUID } from 'crypto';
-import { NextFunction, Request, Response } from 'express';
 import { verifyJWT } from 'src/lib/jwt';
 import { TokenEntry } from 'src/types/auth';
 
@@ -126,19 +125,21 @@ export const issueApiToken = async () => {
 };
 
 export async function getApiToken(token: string) {
-  const { jwt } = await DB.findToken({ token });
+  const jwt = (await DB.findToken({ token }))?.jwt;
   logDebug('jwt', jwt);
+  if (!jwt) return null;
+
   return jwt;
 }
 
-export async function verifyApiToken(req: Request, res: Response, next: NextFunction) {
-  logDebug('********* verifyApiToken method **********', req.user);
+export async function verifyApiToken(token: string) {
+  logDebug('********* verifyApiToken method **********', token);
   try {
     // if (req.isAuthenticated()) {
     //   return next();
     // }
 
-    const token = req.headers.authorization?.split('Bearer ')?.[1];
+    // const token = req.headers.authorization?.split('Bearer ')?.[1];
     logDebug('token', token);
     if (token) {
       const { jwt } = await DB.findToken({ token });
@@ -147,12 +148,12 @@ export async function verifyApiToken(req: Request, res: Response, next: NextFunc
       const verify = await verifyJWT(jwt);
       logDebug('verify', verify);
       if (!verify) {
-        res.status(401).json('Unauthorized');
+        throw new Error('401');
       }
 
-      return next();
+      return true;
     }
-    return res.status(401).send('Unauthorized');
+    return false;
   } catch (ex) {
     logError('Error verifyApiToken ', ex);
     throw ex;
