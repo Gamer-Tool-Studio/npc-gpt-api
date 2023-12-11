@@ -14,7 +14,11 @@ const getConfig = (env: { [key: string]: string }, argv: { [key: string]: string
     plugins: [
       new WebpackShellPluginNext({
         onBuildStart: { scripts: ['npm run clean:dev && npm run clean:prod'], blocking: true, parallel: false },
-        onBuildEnd: { scripts: ['npm run development'], blocking: false, parallel: true },
+        onBuildEnd: {
+          scripts: argv.mode === 'production' ? [] : ['npm run development'],
+          blocking: false,
+          parallel: true,
+        },
       }),
     ],
 
