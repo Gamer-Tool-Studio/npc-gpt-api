@@ -1,9 +1,8 @@
 import { ChatCompletionRequestMessage } from 'openai';
 import openai from 'src/lib/openai';
 import { ChatCompletionRequestMessageClass } from 'src/types/openai.types';
-// import type { CharacterType } from 'src/types';
 
-// import { characterScriptBuilder } from '~/lib/characterBuilder';
+const { TESTING } = require('src/config');
 
 // type GeneratePromptRes = Record<string, string>;
 type GeneratePromptReq = ({
@@ -30,6 +29,13 @@ const listEngines = async () => {
 };
 
 const createCompletion = async ({ messages }: { messages: Array<ChatCompletionRequestMessage> }) => {
+  if (TESTING) {
+    return {
+      choices: [{ message: messages.at(-1) }],
+      usage: { prompt_tokens: 406, completion_tokens: 60, total_tokens: 466 },
+    };
+  }
+
   const response = await openai
     .createChatCompletion({
       model: 'gpt-3.5-turbo',

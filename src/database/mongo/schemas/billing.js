@@ -3,11 +3,11 @@ const { Schema } = require('mongoose');
 const TotalBillingDaySchema = new Schema(
   {
     accountId: { type: Schema.Types.ObjectId, ref: 'user' },
-    totalInputWords: {
+    inputWords: {
       type: Number,
       default: 1,
     },
-    totalOutputWords: {
+    outputWords: {
       type: Number,
       default: 1,
     },

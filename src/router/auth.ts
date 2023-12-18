@@ -2,9 +2,11 @@ import { Router, Request, Response } from 'express';
 import parameterValidator from 'src/core-services/parameterValidator';
 import passport from 'passport';
 import { filterObject } from 'src/lib/util';
-import { getApiToken, issueApiToken, issueTokenForUser, registerApiToken } from 'src/services/auth';
+import { issueApiToken, issueTokenForUser, registerApiToken } from 'src/services/auth';
 import { issueJWT, verifyJWT } from 'src/lib/jwt';
+import { Types } from 'mongoose';
 
+const { ObjectId } = Types;
 const DB = require('src/database');
 const { createAccount, registerUser } = require('src/services/auth');
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('router:auth');
@@ -34,22 +36,11 @@ router.get('/check', async (req, res) => {
 
 router.post('/validate-token', async (req: Request, res: Response) => {
   try {
-    logDebug(' **** validate-token route **** ');
+    logDebug(' **** validate-token route **** ', req.user);
+    const user = await DB.findBillingLog({ accountId: new ObjectId(req.user?.id) }, null, null);
+    logDebug(' **** user **** ', user);
 
-    const { token } = req.body;
-    logDebug(' **** token **** ', token);
-
-    if (token) {
-      const jwt = await getApiToken(String(token));
-      if (!jwt) {
-        res.status(401).json('Unauthorized');
-      }
-      logDebug(' **** jwt **** ', jwt);
-
-      res.status(200).end();
-    } else {
-      res.status(401).json('Unauthorized');
-    }
+    res.status(200).json(user).end();
   } catch (ex) {
     logError('/validate-token', ex);
     res.status(500).json({ error: ex });

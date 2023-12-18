@@ -84,6 +84,11 @@ const env = {
     type: 'boolean',
     default: false,
   },
+  TESTING: {
+    env: 'TESTING',
+    type: 'boolean',
+    default: false,
+  },
 };
 
 const loggerEnv = {
