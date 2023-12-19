@@ -38,7 +38,7 @@ const createCompletion = async ({ messages }: { messages: Array<ChatCompletionRe
 
   const response = await openai
     .createChatCompletion({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4-1106-preview',
       messages,
       max_tokens: 60,
       temperature: 0.5,
