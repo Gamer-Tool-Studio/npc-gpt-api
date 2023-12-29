@@ -3,6 +3,8 @@ import nodeExternals from 'webpack-node-externals';
 import { Configuration } from 'webpack';
 import WebpackShellPluginNext from 'webpack-shell-plugin-next';
 
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+
 const getConfig = (env: { [key: string]: string }, argv: { [key: string]: string }): Configuration => {
   // eslint-disable-next-line global-require
   require('dotenv').config({ path: path.resolve(__dirname, `.env.${env.mode}`) });
@@ -20,6 +22,14 @@ const getConfig = (env: { [key: string]: string }, argv: { [key: string]: string
           parallel: true,
         },
       }),
+      new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: path.resolve(__dirname, 'src', 'assets'),
+            to: path.resolve(__dirname, 'build', 'assets'),
+          },
+        ],
+      }),
     ],
 
     module: {
@@ -29,6 +39,14 @@ const getConfig = (env: { [key: string]: string }, argv: { [key: string]: string
           loader: 'ts-loader',
           options: {},
           exclude: /node_modules/,
+        },
+        {
+          test: /\.(png|svg|jpg|jpeg|gif)$/i,
+          type: 'asset/resource',
+          include: path.resolve(__dirname, 'src', 'assets', 'characters'),
+          generator: {
+            filename: 'assets/characters/[name][ext]', // specify the folder for assets
+          },
         },
       ],
     },
@@ -40,7 +58,7 @@ const getConfig = (env: { [key: string]: string }, argv: { [key: string]: string
         '~/openai': path.resolve(__dirname, 'src/services/openai'),
       },
     },
-    output: { path: path.join(__dirname, 'build'), filename: 'index.js' },
+    output: { path: path.join(__dirname, 'build'), filename: 'index.js', publicPath: '/' },
     optimization: { moduleIds: 'deterministic', splitChunks: { chunks: 'all' } },
   };
 };

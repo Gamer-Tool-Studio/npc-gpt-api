@@ -68,6 +68,7 @@
     "bcryptjs": "^2.4.3",
     "big.js": "^6.2.1",
     "cookie-parser": "^1.4.6",
+    "copy-webpack-plugin": "^11.0.0",
     "cors": "^2.8.5",
     "debug": "^4.3.4",
     "eslint-config-airbnb": "^19.0.4",
@@ -83,6 +84,7 @@
     "passport-google-oidc": "^0.1.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
-    "passport-oauth": "^1.0.0"
+    "passport-oauth": "^1.0.0",
+    "stripe": "^14.10.0"
   }
 }

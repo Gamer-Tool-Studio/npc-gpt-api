@@ -35,6 +35,9 @@ const Database = {
   findUser: (filter, select, options) => {
     return mongoDB.user.find(filter, select, options);
   },
+  findOneCharacter: (filter, select, options) => {
+    return mongoDB.character.findOne(filter, select, options);
+  },
   findSingleUser: (filter, select, options) => {
     return mongoDB.user.findOne(filter, select, options);
   },
