@@ -4,7 +4,7 @@ import { listEngines, createCompletion, generatePrompt } from '~/services/openai
 import parameterValidator from 'src/core-services/parameterValidator';
 import { characterScriptBuilder } from 'src/lib/characterBuilder';
 import { isArrayOf } from 'src/lib/util';
-import { ChatCompletionRequestMessage } from 'openai';
+import { ChatCompletionRequestMessage, CreateCompletionResponseUsage } from 'openai';
 import { ChatCompletionRequestMessageClass } from 'src/types/openai.types';
 import { updateBilling } from 'src/services/billing';
 
@@ -63,7 +63,10 @@ router.post('/send-message', async (req: Request, res: Response) => {
     logDebug('Response createCompletion:', response);
 
     // TODO: Update billing
-    const updateBillingRes = await updateBilling({ accountId: req.user?.id }, response.usage);
+    const updateBillingRes = await updateBilling(
+      req.user?.id as string,
+      response.usage as CreateCompletionResponseUsage,
+    );
     logDebug('send-message inputBillingEvent res:', updateBillingRes);
     // res.json({ response: 'generatedResponse', chatHistory: [...messages, 'generatedResponse'] });
 
