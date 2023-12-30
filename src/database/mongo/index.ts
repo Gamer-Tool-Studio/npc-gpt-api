@@ -25,8 +25,11 @@ function loadModels() {
       const schema = file.slice(0, file.length - 3);
       // eslint-disable-next-line operator-linebreak
       const schemaFile =
-        // eslint-disable-next-line import/no-dynamic-require, global-require
-        extension === '.ts' ? await require(`./schemas/${file}`).default : await require(`./schemas/${file}`);
+        extension === '.ts'
+          ? // eslint-disable-next-line import/no-dynamic-require, global-require
+            (await require(`./schemas/${file}`).schema) || (await require(`./schemas/${file}`).default)
+          : // eslint-disable-next-line import/no-dynamic-require, global-require
+            await require(`./schemas/${file}`);
 
       mongoModels[schema] = mongoose.model(schema, schemaFile);
       // eslint-disable-next-line no-console
