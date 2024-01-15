@@ -5,7 +5,7 @@ import parameterValidator from 'src/core-services/parameterValidator';
 import { characterScriptBuilder } from 'src/lib/characterBuilder';
 import { isArrayOf } from 'src/lib/util';
 import { ChatCompletionRequestMessage, CreateCompletionResponseUsage } from 'openai';
-import { ChatCompletionRequestMessageClass } from 'src/types/openai.types';
+import { ChatCompletionRequestMessageClass } from 'src/types/openai';
 import { updateBilling } from 'src/services/billing';
 
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('chat');

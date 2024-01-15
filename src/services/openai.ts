@@ -1,6 +1,6 @@
-import { ChatCompletionRequestMessage } from 'openai';
+import { ChatCompletionRequestMessage, CreateChatCompletionResponse } from 'openai';
 import openai from 'src/lib/openai';
-import { ChatCompletionRequestMessageClass } from 'src/types/openai.types';
+import { ChatCompletionRequestMessageClass } from 'src/types/openai';
 
 const { TESTING } = require('src/config');
 
@@ -28,9 +28,17 @@ const listEngines = async () => {
   return response.data;
 };
 
-const createCompletion = async ({ messages }: { messages: Array<ChatCompletionRequestMessage> }) => {
+const createCompletion = async ({
+  messages,
+}: {
+  messages: Array<ChatCompletionRequestMessage>;
+}): Promise<CreateChatCompletionResponse> => {
   if (TESTING) {
     return {
+      id: '',
+      object: '',
+      created: 0,
+      model: '',
       choices: [{ message: messages.at(-1) }],
       usage: { prompt_tokens: 406, completion_tokens: 60, total_tokens: 466 },
     };
@@ -44,6 +52,7 @@ const createCompletion = async ({ messages }: { messages: Array<ChatCompletionRe
       temperature: 0.5,
     })
     .catch((err) => {
+      // eslint-disable-next-line no-console
       console.log(err?.response?.data?.error);
 
       throw new Error(err.response.data.error.message || err);

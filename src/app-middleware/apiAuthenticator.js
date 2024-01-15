@@ -17,17 +17,17 @@ const authRoutes = [
   '/api/v1/auth/edit-token',
   '/api/v1/auth/validate-token',
   '/api/v1/chat/send-message',
+  '/api/v1/user/balance',
 ];
 
 const signValidatorHandler = async (req, res, next) => {
-  logDebug('API AUTHENTICATOR\n', `URL : ${req.originalUrl} METHOD: ${req.method}`);
+  logDebug(' API AUTHENTICATOR', `URL: ${req.originalUrl} METHOD: ${req.method}`);
 
-  logDebug('API HEADERS:\n', req.headers);
+  logDebug(' API HEADERS: ', req.headers);
 
   const { authorization } = req.headers;
 
   const calledUrl = req.originalUrl.split('?')[0];
-  logDebug('called url ', calledUrl);
   if (authRoutes.includes(calledUrl)) {
     try {
       logDebug('isAuthenticated ', req.isAuthenticated());

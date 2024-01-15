@@ -1,0 +1,111 @@
+import { Request, Response, Router } from 'express';
+import { addTokens, createPaymentLink, checkBalance } from 'src/services/billing';
+import Stripe from 'stripe';
+
+const DB = require('src/database');
+const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('stripe');
+
+const router = Router();
+
+const endpointSecret = 'whsec_c5d5cb4c69c413c62f75201738a8595f95d5182bc37a91d53c4ae694b22ae2c1';
+
+router.get('/success', async (req: Request, res: Response) => {
+  try {
+    logDebug(' **** callback **** query ', req.query);
+
+    const checkBalanceResponse = await checkBalance(req.query.session_id as string);
+    logDebug(' **** checkBalanceResponse ****  ', checkBalanceResponse);
+
+    res.send(checkBalanceResponse);
+  } catch (ex) {
+    logError('get todo ', ex);
+    res.status(500).json({ error: ex });
+  }
+});
+
+// http://localhost:3002/api/v1/stripe/success?session_id=cs_test_a1zN6zcCvbHSlKgkODuSjwgKImHsqZVlPNHwPKUhpsxFkkYlDcwmnEXLs1
+router.post('/create', async (req: Request, res: Response) => {
+  try {
+    logDebug(' **** create **** body ', req.body);
+
+    const user = await DB.findSingleUser({
+      accountId: req.user?.id,
+    });
+    logDebug(' **** email **** body ', user);
+
+    const createPaymentLinkResponse = await createPaymentLink(
+      req.body.price_id as string,
+      req.body.mode as string,
+      user.email as string,
+    );
+    logDebug(' **** createPaymentLinkResponse ****  ', createPaymentLinkResponse);
+
+    res.send(createPaymentLinkResponse);
+  } catch (ex) {
+    logError('get todo ', ex);
+    res.status(500).json({ error: ex });
+  }
+});
+
+export const webhook = async (request: Request, response: Response) => {
+  logDebug(' **** webhook ****  ', request.body);
+
+  let event = request.body;
+  // Only verify the event if you have an endpoint secret defined.
+  // Otherwise use the basic event deserialized with JSON.parse
+  if (endpointSecret) {
+    // Get the signature sent by Stripe
+    const signature = request.headers['stripe-signature'];
+    try {
+      event = Stripe.webhooks.constructEvent(
+        request.body,
+        signature as unknown as string | string[] | Buffer,
+        endpointSecret,
+      );
+    } catch (err: unknown) {
+      logError('⚠️  Webhook signature verification failed.', err);
+      return response.sendStatus(400);
+    }
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case 'payment_intent.succeeded': {
+      const paymentIntent = event.data.object;
+      logDebug(`PaymentIntent for ${paymentIntent.amount} was successful!`);
+      // Then define and call a method to handle the successful payment intent.
+      // handlePaymentIntentSucceeded(paymentIntent);
+      logDebug('paymentIntent', paymentIntent);
+      return response.send(paymentIntent);
+    }
+    case 'payment_method.attached': {
+      const paymentMethod = event.data.object;
+      // Then define and call a method to handle the successful attachment of a PaymentMethod.
+      // handlePaymentMethodAttached(paymentMethod);
+      logDebug('paymentMethod', paymentMethod);
+      break;
+    }
+    case 'checkout.session.async_payment_succeeded': {
+      const checkoutSessionAsyncPaymentSucceeded = event.data.object;
+      logDebug('checkoutSessionAsyncPaymentSucceeded', checkoutSessionAsyncPaymentSucceeded);
+      break;
+    }
+    case 'checkout.session.completed': {
+      const checkoutSessionCompleted = event.data.object;
+      // Then define and call a function to handle the event checkout.session.completed
+      logDebug('checkoutSessionCompleted', checkoutSessionCompleted);
+      const addTokensResponse = await addTokens(checkoutSessionCompleted);
+      logDebug(' **** addTokensResponse ****  ', addTokensResponse);
+      response.send(addTokensResponse);
+      break;
+    }
+    default:
+      // Unexpected event type
+      logError(`Unhandled event type ${event.type}.`);
+  }
+
+  // Return a 200 response to acknowledge receipt of the event
+  return response.send();
+};
+
+export default router;

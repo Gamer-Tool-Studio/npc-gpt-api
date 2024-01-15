@@ -12,3 +12,4 @@ declare global {
 
 export * from './character';
 export * from './auth';
+export * from './schemas';

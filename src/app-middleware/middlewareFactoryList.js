@@ -1,5 +1,7 @@
 /* eslint-disable global-require */
 module.exports = [
+
+  require('./webhook'),
   require('./bodyParserJsonFactory'),
   require('./bodyParserUrlEncodeFactory'),
   // require('./apiAuthenticator'),
