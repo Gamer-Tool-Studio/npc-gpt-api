@@ -1,3 +1,4 @@
+/* eslint-disable global-require, import/no-dynamic-require */
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('mongo');
 const fs = require('fs');
 const path = require('path');
@@ -23,13 +24,10 @@ function loadModels() {
     if (file === 'index.ts' || !['.js', '.ts'].includes(extension)) return;
     try {
       const schema = file.slice(0, file.length - 3);
-      // eslint-disable-next-line operator-linebreak
-      const schemaFile =
-        extension === '.ts'
-          ? // eslint-disable-next-line import/no-dynamic-require, global-require
-            (await require(`./schemas/${file}`).schema) || (await require(`./schemas/${file}`).default)
-          : // eslint-disable-next-line import/no-dynamic-require, global-require
-            await require(`./schemas/${file}`);
+
+      const schemaFile = extension === '.ts'
+        ? (await require(`./schemas/${file}`)).schema || (await require(`./schemas/${file}`)).default
+        : await require(`./schemas/${file}`);
 
       mongoModels[schema] = mongoose.model(schema, schemaFile);
       // eslint-disable-next-line no-console
