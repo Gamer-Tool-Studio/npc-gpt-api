@@ -8,7 +8,7 @@ import { Types } from 'mongoose';
 
 const { ObjectId } = Types;
 const DB = require('src/database');
-const { createAccount, registerUser } = require('src/services/auth');
+const { registerUser } = require('src/services/auth');
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('router:auth');
 const { ALLOW_REGISTER } = require('~/config');
 
@@ -71,9 +71,9 @@ router.post('/local/register', async (req: Request, res: Response) => {
 
     const newUser = await registerUser(req.body);
     return res.json({ user: newUser });
-  } catch (ex) {
-    logError('issue register new user ', ex);
-    return res.status(500).json({ error: ex });
+  } catch (error:any) {
+    logError('issue register new user ', error);
+    return res.status(500).send({ error: error?.message });
   }
 });
 
@@ -82,14 +82,17 @@ router.post('/local/login', async (req: Request, res: Response) => {
   logDebug(' **** login route **** ', req.user);
   try {
     const { username, password } = req.body;
-    const user = await DB.findSingleUser({ username }, null, null);
+
+    const user = await DB.findSingleUser(
+      { username: { $regex: new RegExp(`^${username}$`, 'i') } },
+    );
 
     if (!user) {
-      res.status(403).json({ error: 'login user error', user: 'User not found' });
+      return res.status(403).json({ error: 'login user error', user: 'User not found' });
     }
 
     if (!user.verifyPassword(password)) {
-      res.status(403).json({ error: 'login password error', msg: 'WRONG_PASSWORD' });
+      return res.status(403).json({ error: 'login password error', msg: 'WRONG_PASSWORD' });
     }
 
     const filter = ['id', 'username', 'email'];
@@ -170,36 +173,6 @@ router.patch('/edit-token', async (req: Request, res: Response) => {
     res.status(200).send('Token updated');
   } catch (ex) {
     logError('edit-token ', ex);
-    res.status(500).json({ error: ex });
-  }
-});
-
-router.post('/reset-secret', async (req: Request, res: Response) => {
-  try {
-    logDebug(' **** reset-secret **** route ');
-
-    logDebug(' **** locals ', res.locals.username, ' auth token ', res.locals.authToken);
-
-    res.status(200).json({
-      token: res.locals.authToken,
-      username: res.locals.username,
-    });
-  } catch (ex) {
-    logError('get todo ', ex);
-    res.status(500).json({ error: ex });
-  }
-});
-
-router.post('/create-account', async (req: Request, res: Response) => {
-  try {
-    logDebug(' **** reset-secret **** route ');
-
-    logDebug(' **** locals ', res.locals.username, ' auth token ', res.locals.authToken);
-
-    const a = await createAccount(req.body);
-    res.status(200).json({ newAccount: a });
-  } catch (ex) {
-    logError('create-account log error ', ex);
     res.status(500).json({ error: ex });
   }
 });

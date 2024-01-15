@@ -19,6 +19,7 @@ router.get('/nft/:id.json', async (req: Request, res: Response) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
 router.get('/characters/:id.png', async (req: Request, res: Response) => {
   const characterId = req.params.id;
   logDebug('characterId', characterId);

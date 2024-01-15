@@ -46,14 +46,21 @@ export const createNewUserAndAccount = async (user: any) => {
 };
 
 export const registerUser = async (data: any) => {
-  logDebug('********* authenticator route **********', data);
-
-  const passwordHash = bcrypt.hashSync(data.password, bcrypt.genSaltSync(10), null);
-  const newUser = await DB.registerUser({ ...data, password: passwordHash });
-  logDebug('Created user', newUser.toJSON());
-
+  logDebug('********* registerUser **********', data);
   try {
-    return newUser;
+    const savedUser = await DB.findSingleUser({
+      $or: [
+        { email: data.email }, { username: data.username },
+      ],
+    });
+    // if user does not exist, create user and account data
+    if (!savedUser) {
+      const passwordHash = bcrypt.hashSync(data.password, bcrypt.genSaltSync(10), null);
+      const newUser = await DB.registerUser({ ...data, password: passwordHash });
+      logDebug('Created user', newUser.toJSON());
+      return newUser;
+    }
+    throw new Error('User already exists');
   } catch (ex) {
     logError('register new user ', ex);
     throw ex;
