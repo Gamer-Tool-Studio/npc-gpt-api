@@ -10,6 +10,10 @@ const SkuSchema = new Schema(
     outputTokens: Number,
     inputTokens: Number,
     description: String,
+    image: String,
+    active: Boolean,
+    featured: Boolean,
+    platform: String,
   },
   {
     collection: 'sku',

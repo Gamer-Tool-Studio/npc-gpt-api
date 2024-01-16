@@ -29,7 +29,9 @@ if (!mongoDB) {
 
 const Database: DataBase = {
   // Generic methods
+
   create: (schema: DataBaseSchemas, data: any, options: any) => mongoDB[schema].create(data, options),
+  find: (schema: DataBaseSchemas, filter: any, select: any, options: any) => mongoDB[schema].find(filter, select, options),
   findOne: (schema: DataBaseSchemas, filter: any, select: any, options: any) => mongoDB[schema].findOne(filter, select, options),
   findOneAndUpdate: (schema: DataBaseSchemas, filter: any, update: any, options: any) => mongoDB[schema].findOneAndUpdate(filter, update, options),
 

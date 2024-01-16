@@ -1,6 +1,5 @@
 import { Request, Response, Router } from 'express';
-
-const DB = require('src/database');
+import DB from 'src/database';
 // const fs = require('fs').promises;
 const path = require('path');
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('stripe');
@@ -26,6 +25,20 @@ router.get('/characters/:id.png', async (req: Request, res: Response) => {
 
   try {
     res.sendFile(path.join(__dirname, `./assets/characters/${characterId}.png`));
+  } catch (error) {
+    logError('Error:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+router.get('/pricing-list', async (req: Request, res: Response) => {
+  logDebug('pricing-list');
+
+  try {
+    const pricingList = await DB.find('sku', { platform: 'cluaido-test' }, null, { sort: { value: 1 } });
+    logDebug('pricingList', pricingList);
+
+    res.json(pricingList);
   } catch (error) {
     logError('Error:', error);
     res.status(500).send('Internal Server Error');

@@ -1,13 +1,29 @@
 import { Router, Request, Response } from 'express';
 import { filterObject } from 'src/lib/util';
+import { checkBalance } from 'src/services/billing';
 import { TokenEntry } from 'src/types/auth';
 
-const DB = require('src/database');
+import DB from 'src/database';
+
 const { mapGoogleToProfile } = require('src/lib/util');
 
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('user');
 
 const router = Router();
+
+/**
+ * Get user Balance
+ */
+router.get('/balance', async (req: Request, res: Response) => {
+  logDebug('Route /balance', req.user);
+
+  try {
+    const userBalance = await checkBalance(req.user?.id);
+    res.send(userBalance);
+  } catch (error) {
+    logError(error);
+  }
+});
 
 /**
  *  User profile

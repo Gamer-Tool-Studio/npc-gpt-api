@@ -5,9 +5,10 @@ import { filterObject } from 'src/lib/util';
 import { issueApiToken, issueTokenForUser, registerApiToken } from 'src/services/auth';
 import { issueJWT, verifyJWT } from 'src/lib/jwt';
 import { Types } from 'mongoose';
+import DB from 'src/database';
 
 const { ObjectId } = Types;
-const DB = require('src/database');
+
 const { registerUser } = require('src/services/auth');
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('router:auth');
 const { ALLOW_REGISTER } = require('~/config');
@@ -71,7 +72,7 @@ router.post('/local/register', async (req: Request, res: Response) => {
 
     const newUser = await registerUser(req.body);
     return res.json({ user: newUser });
-  } catch (error:any) {
+  } catch (error: any) {
     logError('issue register new user ', error);
     return res.status(500).send({ error: error?.message });
   }
@@ -83,9 +84,7 @@ router.post('/local/login', async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
 
-    const user = await DB.findSingleUser(
-      { username: { $regex: new RegExp(`^${username}$`, 'i') } },
-    );
+    const user = await DB.findSingleUser({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
 
     if (!user) {
       return res.status(403).json({ error: 'login user error', user: 'User not found' });

@@ -2,7 +2,8 @@ import { randomUUID } from 'crypto';
 import { verifyJWT } from 'src/lib/jwt';
 import { TokenEntry } from 'src/types/auth';
 
-const DB = require('src/database');
+import DB from 'src/database';
+
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('service:auth');
 const { issueJWT } = require('src/lib/jwt');
 
@@ -49,9 +50,7 @@ export const registerUser = async (data: any) => {
   logDebug('********* registerUser **********', data);
   try {
     const savedUser = await DB.findSingleUser({
-      $or: [
-        { email: data.email }, { username: data.username },
-      ],
+      $or: [{ email: data.email }, { username: data.username }],
     });
     // if user does not exist, create user and account data
     if (!savedUser) {
