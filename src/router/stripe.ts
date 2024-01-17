@@ -26,23 +26,24 @@ router.get('/success', async (req: Request, res: Response) => {
 // http://localhost:3002/api/v1/stripe/success?session_id=cs_test_a1zN6zcCvbHSlKgkODuSjwgKImHsqZVlPNHwPKUhpsxFkkYlDcwmnEXLs1
 router.post('/create', async (req: Request, res: Response) => {
   try {
-    logDebug(' **** create **** body ', req.body);
+    logDebug(' **** create **** body ', req.body, req.user);
 
-    const user = await DB.findSingleUser({
-      accountId: req.user?.id,
-    });
-    logDebug(' **** email **** body ', user);
+    logDebug(' **** email **** user ', req.user?.email);
+
+    if (!req.user?.email) {
+      throw new Error('No user email');
+    }
 
     const createPaymentLinkResponse = await createPaymentLink(
       req.body.price_id as string,
       req.body.mode as string,
-      user.email as string,
+      req.user?.email as string,
     );
     logDebug(' **** createPaymentLinkResponse ****  ', createPaymentLinkResponse);
 
     res.send(createPaymentLinkResponse);
   } catch (ex) {
-    logError('get todo ', ex);
+    logError('/create post', ex);
     res.status(500).json({ error: ex });
   }
 });
