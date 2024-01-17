@@ -1,7 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { addTokens, createPaymentLink, checkBalance } from 'src/services/billing';
 import Stripe from 'stripe';
-import DB from 'src/database';
 
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('stripe');
 
