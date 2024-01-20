@@ -1,5 +1,5 @@
 const express = require('express');
-const { appName } = require('~/config');
+const { appName } = require('~/config').default;
 const gitData = require('~/core-services/getGitData');
 const { version } = require('../../package.json');
 const getCommitSlug = require('./getCommitSlug');

@@ -25,6 +25,7 @@ function loadModels() {
     try {
       const schema = file.slice(0, file.length - 3);
 
+      // prettier-ignore
       const schemaFile = extension === '.ts'
         ? (await require(`./schemas/${file}`)).schema || (await require(`./schemas/${file}`)).default
         : await require(`./schemas/${file}`);
@@ -55,6 +56,6 @@ export = (url: string) => {
     return mongoModels;
   } catch (error) {
     logDebug('[DATABASE] ', error);
-    return null;
+    return {};
   }
 };

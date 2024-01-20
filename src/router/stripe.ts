@@ -1,8 +1,11 @@
 import { Request, Response, Router } from 'express';
+import config from 'src/config';
 import { addTokens, createPaymentLink, checkBalance } from 'src/services/billing';
 import Stripe from 'stripe';
 
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('stripe');
+
+const { FRONTEND_URL } = config;
 
 const router = Router();
 
@@ -15,7 +18,7 @@ router.get('/success', async (req: Request, res: Response) => {
     const checkBalanceResponse = await checkBalance(req.query.session_id as string);
     logDebug(' **** checkBalanceResponse ****  ', checkBalanceResponse);
 
-    res.send(checkBalanceResponse);
+    res.redirect(`${FRONTEND_URL}/billing`);
   } catch (ex) {
     logError('get todo ', ex);
     res.status(500).json({ error: ex });

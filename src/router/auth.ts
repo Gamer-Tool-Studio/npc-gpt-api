@@ -6,12 +6,14 @@ import { issueApiToken, issueTokenForUser, registerApiToken } from 'src/services
 import { issueJWT, verifyJWT } from 'src/lib/jwt';
 import { Types } from 'mongoose';
 import DB from 'src/database';
+import config from 'src/config';
+
+const { ALLOW_REGISTER, FRONTEND_URL } = config;
 
 const { ObjectId } = Types;
 
 const { registerUser } = require('src/services/auth');
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('router:auth');
-const { ALLOW_REGISTER } = require('~/config');
 
 const router = Router();
 
@@ -53,7 +55,7 @@ router.post('/validate-token', async (req: Request, res: Response) => {
  *  Google authenticator
  * */
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
-  res.redirect('http://127.0.0.1.:3000/redirect');
+  res.redirect(`${FRONTEND_URL}/redirect`);
 });
 
 router.get('/google/login', passport.authenticate('google', { scope: ['profile', 'email'] }));

@@ -1,5 +1,34 @@
 const cfg = require('12factor-config');
 
+// eslint-disable-next-line no-shadow
+enum EnvEnum {
+  ALLOWED_HEADERS = 'allowedHeaders',
+  ALLOWED_ORIGINS = 'allowedOrigins',
+  APP_NAME = 'appName',
+  DEBUG = 'debug',
+  DESIRED_PORT = 'PORT',
+  ENABLE_CORS = 'enableCORS',
+  NODE_ENV = 'nodeEnv',
+  DOMAIN_ENV = 'domain_env',
+  ACCEPTED_LANGS = 'acceptedLanguages',
+  OPENAI_API_KEY = 'OPENAI_API_KEY',
+  REDIS_URL = 'REDIS_URL',
+  USE_REDIS = 'USE_REDIS',
+  GOOGLE_CLIENT_ID = 'GOOGLE_CLIENT_ID',
+  GOOGLE_CLIENT_SECRET = 'GOOGLE_CLIENT_SECRET',
+  GOOGLE_CALLBACK = 'GOOGLE_CALLBACK',
+  TOKEN_SECRET = 'TOKEN_SECRET',
+  FRONTEND_URL = 'FRONTEND_URL',
+  ALLOW_REGISTER = 'ALLOW_REGISTER',
+  TESTING = 'TESTING',
+
+  DB_HOST = 'DB_HOST',
+  DB_USER = 'DB_USER',
+  DB_PASS = 'DB_PASS',
+  DB_NAME = 'DB_NAME',
+  COMPLEMENT = 'COMPLEMENT',
+}
+
 const env = {
   allowedHeaders: {
     env: 'ALLOWED_HEADERS',
@@ -19,7 +48,7 @@ const env = {
     type: 'string',
     // required: true,
   },
-  desiredPort: {
+  PORT: {
     env: 'PORT',
     type: 'integer',
     required: true,
@@ -79,6 +108,11 @@ const env = {
     type: 'string',
     required: true,
   },
+  FRONTEND_URL: {
+    env: 'FRONTEND_URL',
+    type: 'string',
+    required: true,
+  },
   ALLOW_REGISTER: {
     env: 'ALLOW_REGISTER',
     type: 'boolean',
@@ -89,29 +123,46 @@ const env = {
     type: 'boolean',
     default: false,
   },
-};
-
-const loggerEnv = {
-  loggerAMQPBroker: {
-    env: 'LOGGER_AMQP_BROKER',
+  DB_HOST: {
+    env: 'DB_HOST',
     type: 'string',
-    required: false,
+    required: true,
   },
-  loggerRemote: {
-    env: 'LOGGER_REMOTE',
-    type: 'boolean',
-    default: false,
+  DB_USER: {
+    env: 'DB_USER',
+    type: 'string',
+    required: true,
   },
-  loggerLevel: {
-    env: 'LOGGER_LEVEL',
-    type: 'enum',
-    values: ['debug', 'info', 'warn', 'error'],
-    default: 'debug',
+  DB_PASS: {
+    env: 'DB_PASS',
+    type: 'string',
+    required: true,
   },
+  DB_NAME: {
+    env: 'DB_NAME',
+    type: 'string',
+    required: true,
+  },
+  COMPLEMENT: {
+    env: 'COMPLEMENT',
+    type: 'string',
+    required: true,
+  },
+
+} as const;
+
+type TypeMapping = {
+  'string': string;
+  'number': number;
+  'boolean': boolean;
+  'integer': number;
+  'enum': string;
 };
 
-Object.assign(env, loggerEnv);
+type Config = {
+  [key in EnvEnum]: typeof env[key]['type'] extends keyof TypeMapping ? TypeMapping[typeof env[key]['type']] : never;
+};
 
-const config = cfg(env);
+const config: Config = cfg(env);
 
-module.exports = config;
+export default config;

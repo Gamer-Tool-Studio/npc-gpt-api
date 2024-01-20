@@ -1,27 +1,28 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable max-len */
-// import { connectToMongo } from './mongo';
-// eslint-disable-next-line no-shadow
 
 import { DataBase } from 'src/types/schemas';
 import { DataBaseSchemas } from 'src/types/enums';
 
-const config = require('~/config');
+import config from 'src/config';
+
+import connectToMongo from './mongo';
+
+const {
+  COMPLEMENT, DB_HOST, DB_NAME, DB_PASS, DB_USER,
+} = config;
+
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('database');
-const connectToMongo = require('./mongo');
-// const startRedis = require('./redis');
-// load config of database url from individual strings
-if (!config.databaseURL) {
-  let url = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}/`;
-  // url += process.env.DB_PORT + '/';
-  url += process.env.DB_NAME;
-  // url += '?authSource=admin';
-  // url += '?replicaSet=' + process.env.REPL_SET;
-  url += process.env.COMPLEMENT;
-  config.databaseURL = url;
-}
-logDebug('MONGO URI CONNECTED :  ', config.databaseURL);
-const mongoDB = connectToMongo(config.databaseURL);
+
+// create a string for the mongoDB URI from the environment variables
+
+const databaseURL = `mongodb+srv://${DB_USER}:${DB_PASS}@${DB_HOST}/${DB_NAME}${COMPLEMENT}`;
+// url += process.env.DB_PORT + '/';
+// url += '?authSource=admin';
+// url += '?replicaSet=' + process.env.REPL_SET;
+
+logDebug('MONGO URI CONNECTED : ', databaseURL);
+const mongoDB: Record<string, any> = connectToMongo(databaseURL);
 
 if (!mongoDB) {
   logError('[DATABASE] ');
@@ -102,7 +103,7 @@ const Database: DataBase = {
         const input = Array(numberOfDaysInMonth).fill(0);
         const output = Array(numberOfDaysInMonth).fill(0);
 
-        monthlyData.forEach((entry: { date: string | number | Date; input: number; output: number; }): void => {
+        monthlyData.forEach((entry: { date: string | number | Date; input: number; output: number }): void => {
           const dayOfMonth = new Date(entry.date).getDate();
           input[dayOfMonth - 1] += entry.input;
           output[dayOfMonth - 1] += entry.output;
@@ -116,7 +117,6 @@ const Database: DataBase = {
       throw err;
     }
   },
-
 };
 
 export default Database;

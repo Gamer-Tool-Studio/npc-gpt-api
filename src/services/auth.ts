@@ -91,7 +91,7 @@ export const resetApiKey = async () => {
 export const registerApiToken = async (
   accountId: string | undefined,
   token: string,
-  jwt: JsonWebKey,
+  jwt: string,
   name = 'Default Name',
 ) => {
   logDebug('********* registerApiToken method **********', accountId);

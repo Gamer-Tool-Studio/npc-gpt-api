@@ -1,6 +1,7 @@
-const Logger = require('debug');
+import Logger from 'debug';
+import config from 'src/config';
 
-const { appName: name } = require('src/config');
+const { appName: name } = config;
 
 const Factory = {
   getLogger: (moduleName: string) => {

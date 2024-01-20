@@ -1,6 +1,8 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
+import config from 'src/config';
+
+const { TOKEN_SECRET } = config;
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('lib:jwt');
-const { TOKEN_SECRET } = require('~/config');
 
 /**
  * Issues a JWT for a user. Based on https://medium.com/swlh/everything-you-need-to-know-about-the-passport-jwt-passport-js-strategy-8b69f39014b0
@@ -15,9 +17,7 @@ export function issueJWT(accountId: string, payloadValues: any, expiresIn: strin
     ...payloadValues,
   };
 
-  const secret = TOKEN_SECRET;
-
-  const signedToken = jwt.sign(payload, secret, {
+  const signedToken = jwt.sign(payload, TOKEN_SECRET, {
     expiresIn,
     algorithm: 'HS512',
   });
@@ -29,7 +29,7 @@ export function issueJWT(accountId: string, payloadValues: any, expiresIn: strin
   };
 }
 
-export function verifyJWT(token: string | undefined) {
+export function verifyJWT(token: string) {
   try {
     const result = jwt.verify(token, TOKEN_SECRET);
     logDebug('verify result: ', result);

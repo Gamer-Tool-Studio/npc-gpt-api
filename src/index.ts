@@ -4,14 +4,15 @@ import middlewareFactory from './app-middleware/middlewareFactory';
 
 import config from './config';
 
+const { PORT } = config;
+
 const { logDebug } = require('src/core-services/logFunctionFactory').getLogger('app');
 
 logDebug('app');
 
 const app = express();
 app.use(middlewareFactory(config));
-const port = parseInt(config.desiredPort, 10);
 
-app.listen(port, () => {
-  logDebug(`Server is running on port ${port}`);
+app.listen(PORT, () => {
+  logDebug(`Server is running on port ${PORT}`);
 });

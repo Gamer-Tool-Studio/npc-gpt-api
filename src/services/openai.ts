@@ -2,7 +2,9 @@ import { ChatCompletionRequestMessage, CreateChatCompletionResponse } from 'open
 import openai from 'src/lib/openai';
 import { ChatCompletionRequestMessageClass } from 'src/types/openai';
 
-const { TESTING } = require('src/config');
+import config from 'src/config';
+
+const { TESTING } = config;
 
 // type GeneratePromptRes = Record<string, string>;
 type GeneratePromptReq = ({

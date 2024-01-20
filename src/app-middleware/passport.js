@@ -6,7 +6,13 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
 
 const DB = require('src/database');
-const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALLBACK, TOKEN_SECRET } = require('~/config');
+// prettier-ignore
+const {
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  GOOGLE_CALLBACK,
+  TOKEN_SECRET,
+} = require('~/config').default;
 
 const router = Router();
 router.use(passport.initialize());
