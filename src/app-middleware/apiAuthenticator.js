@@ -19,6 +19,7 @@ const authRoutes = [
   '/api/v1/chat/send-message',
   '/api/v1/user/balance',
   '/api/v1/stripe/create',
+  '/api/v1/user/balance',
 ];
 
 const signValidatorHandler = async (req, res, next) => {

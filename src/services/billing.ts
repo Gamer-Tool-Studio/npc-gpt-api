@@ -81,6 +81,7 @@ const addTokens = async (checkoutSessionCompleted: CheckoutSessionCompleted) => 
 export const checkBalance = async (accountId?: string) => {
   logDebug(`checkBalance ${accountId}`);
   const userBilling = await mongoDB.findBillingLog({ accountId });
+  logDebug('userBilling ', userBilling);
 
   return userBilling;
 };
