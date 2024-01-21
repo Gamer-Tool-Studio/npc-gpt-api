@@ -80,7 +80,7 @@ const addTokens = async (checkoutSessionCompleted: CheckoutSessionCompleted) => 
 
 export const checkBalance = async (accountId?: string) => {
   logDebug(`checkBalance ${accountId}`);
-  const userBilling = await mongoDB.findBillingLog({ accountId });
+  const userBilling = await mongoDB.findOne(DataBaseSchemas.BILLING, { accountId });
   logDebug('userBilling ', userBilling);
 
   return userBilling;
@@ -131,7 +131,7 @@ const updateBilling = async (
   // const options = { upsert: true };
   const result = await mongoDB.findAndUpdateBillingLog({ accountId }, updateBody, options);
   // increment billing with day key
-  const billingDayKey = await mongoDB.findBillingLog({ key, accountId }, updateBody, options);
+  const billingDayKey = await mongoDB.findOne(DataBaseSchemas.BILLING, { accountId }, updateBody, options);
 
   try {
     return { result, billingDayKey };

@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import DB from 'src/database';
+import { DataBaseSchemas } from 'src/types/enums';
 
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('usage');
 
@@ -66,7 +67,10 @@ router.post('/perDay', async (req: Request, res: Response) => {
 
     // const savedUserAggregate = await DB.findBillingDayAggregate(year, month + 1, accountId);
     // logDebug(' **** savedUserAggregate ', savedUserAggregate);
-    const { totalInputWords, totalOutputWords } = (await DB.findBillingLog({ accountId: req.user?.id })) || {};
+    const {
+      totalInputWords,
+      totalOutputWords,
+    } = (await DB.findOne(DataBaseSchemas.BILLING, { accountId: req.user?.id })) || {};
 
     const usage = { totalInputWords, totalOutputWords };
 

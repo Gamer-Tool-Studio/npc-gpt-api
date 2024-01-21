@@ -7,6 +7,7 @@ import { issueJWT, verifyJWT } from 'src/lib/jwt';
 import { Types } from 'mongoose';
 import DB from 'src/database';
 import config from 'src/config';
+import { DataBaseSchemas } from 'src/types/enums';
 
 const { ALLOW_REGISTER, FRONTEND_URL } = config;
 
@@ -40,7 +41,7 @@ router.get('/check', async (req, res) => {
 router.post('/validate-token', async (req: Request, res: Response) => {
   try {
     logDebug(' **** validate-token route **** ', req.user);
-    const user = await DB.findBillingLog({ accountId: new ObjectId(req.user?.id) }, null, null);
+    const user = await DB.findOne(DataBaseSchemas.BILLING, { accountId: new ObjectId(req.user?.id) }, null, null);
     logDebug(' **** user **** ', user);
 
     res.status(200).json(user).end();

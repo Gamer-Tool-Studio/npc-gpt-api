@@ -62,7 +62,6 @@ const Database: DataBase = {
   findAndUpdateBillingLog: (query: any, data: any, options: any) => {
     return mongoDB.billing.findOneAndUpdate(query, data, options);
   },
-  findBillingLog: (filter: any, select?: any, options?: any) => mongoDB.billing.findOne(filter, select, options),
 
   findBillingDayAggregate: async (year: number, month: number, accountId: any) => {
     try {
