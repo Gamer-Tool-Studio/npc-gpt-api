@@ -124,19 +124,16 @@ const updateBilling = async (
   const key = day + month + year;
   logDebug('day key', key);
 
-  // increment billing log
-  const updateBody = {
-    $dec: { availableInputTokens: prompt_tokens, availableOutputTokens: completion_tokens },
-  };
-  // const options = { upsert: true };
-  const result = await mongoDB.findAndUpdateBillingLog({ accountId }, updateBody, options);
-  // increment billing with day key
-  const billingDayKey = await mongoDB.findOne(DataBaseSchemas.BILLING, { accountId }, updateBody, options);
-
   try {
-    return { result, billingDayKey };
+  // increment billing log
+    const updateBody = {
+      $inc: { availableInputTokens: Number(-prompt_tokens), availableOutputTokens: Number(-completion_tokens) },
+    };
+    const result = await mongoDB.findOneAndUpdate(DataBaseSchemas.BILLING, { accountId }, updateBody, options);
+    logDebug('result', result);
+    return { ...result };
   } catch (ex) {
-    logError('Error validating data ', ex);
+    logError('Error updating billing ', ex);
     throw ex;
   }
 };
