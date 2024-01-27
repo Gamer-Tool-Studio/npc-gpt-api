@@ -5,7 +5,7 @@ export enum DataBaseSchemas {
   BILLING_DAY = 'billingDay',
   CHARACTER = 'character',
   ORGANIZATION = 'organization',
-  SESSION = 'session',
+  CHECKOUT = 'checkout',
   SKU = 'sku',
   TOKEN = 'token',
   USER = 'user',

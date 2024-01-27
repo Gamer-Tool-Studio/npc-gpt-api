@@ -6,6 +6,7 @@
   "scripts": {
     "start": "npm run serve",
     "serve": "webpack --watch --env mode=development --config webpack.config.ts",
+    "dev": "webpack --watch --env mode=development --config webpack.config.ts",
     "clean:dev": "rimraf build",
     "clean:prod": "rimraf dist",
     "build": "webpack --mode production --config webpack.config.ts",

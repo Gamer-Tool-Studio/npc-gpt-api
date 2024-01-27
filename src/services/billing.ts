@@ -32,6 +32,12 @@ const addTokens = async (checkoutSessionCompleted: CheckoutSessionCompleted) => 
   try {
     logDebug('addTokens:');
     // verificar se session id já foi usado antes atraves da BD
+    const checkoutSessionStored = await mongoDB.findOne(DataBaseSchemas.CHECKOUT, { id: checkoutSessionCompleted.id });
+
+    if (checkoutSessionStored) {
+      logDebug('checkoutSessionStored', checkoutSessionStored);
+      return checkoutSessionStored;
+    }
     const { customer_email: customerEmail, payment_intent: paymentIntent } = checkoutSessionCompleted;
     logDebug('customerEmail', customerEmail);
     const paymentIntentResponse = await stripe.paymentIntents.retrieve(paymentIntent);
@@ -55,18 +61,26 @@ const addTokens = async (checkoutSessionCompleted: CheckoutSessionCompleted) => 
     const updateBody = {
       $inc: { availableInputTokens: Number(item.inputTokens), availableOutputTokens: Number(item.outputTokens) },
     };
+    const userBilling = await mongoDB.findOneAndUpdate(
+      DataBaseSchemas.BILLING,
+      { accountId: user.toJSON().id },
+      updateBody,
+      options,
+    );
 
-    const userBilling = await mongoDB.findAndUpdateBillingLog({ accountId: user.toJSON().id }, updateBody, options);
+    const sessionUpdateBody = { accountId: user.toJSON().id, $push: { checkoutSessions: checkoutSessionCompleted } };
+    const checkout = await mongoDB.findOneAndUpdate(
+      DataBaseSchemas.CHECKOUT,
+      { accountId: user.toJSON().id },
+      sessionUpdateBody,
+      options,
+    );
+
+    logDebug('checkout', checkout);
+
     logDebug('userBilling', userBilling);
 
-    return `<html>
-    <body>
-    <h1>Thanks for your order, ${item} !</h1>
-     <h2> 
-     ${JSON.stringify(purchasedItem)} 
-      </h2> 
-    </body>
-  </html>`;
+    return userBilling;
 
     // const result = await mongoDB.findAndUpdateBillingLog({ accountId }, updateBody, options);
   } catch (error) {

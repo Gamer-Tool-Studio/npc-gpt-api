@@ -109,24 +109,4 @@ router.post('/generate-prompt', async (req: Request, res: Response) => {
   }
 });
 
-// router.put('/:id', async (req: Request, res: Response) => {
-//   try {
-//     const updated = await createCompletion({ prompt: req.params.id });
-//     res.status(200).json(updated);
-//   } catch (ex) {
-//     logError('get todo ', ex);
-//     res.status(500).json({ error: ex });
-//   }
-// });
-
-// router.delete('/:id', async (req, res) => {
-//   try {
-//     const del = await createCompletion({ prompt: req.params.id });
-//     res.status(200).json(del);
-//   } catch (ex) {
-//     logError('get todo ', ex);
-//     res.status(500).json({ error: ex });
-//   }
-// });
-
 export default router;

@@ -51,7 +51,7 @@ router.post('/create', async (req: Request, res: Response) => {
 });
 
 export const webhook = async (request: Request, response: Response) => {
-  logDebug(' **** webhook ****  ', request.body);
+  logDebug(' **** webhook ****  ');
 
   let event = request.body;
   // Only verify the event if you have an endpoint secret defined.
