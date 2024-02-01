@@ -27,6 +27,8 @@ enum EnvEnum {
   DB_PASS = 'DB_PASS',
   DB_NAME = 'DB_NAME',
   COMPLEMENT = 'COMPLEMENT',
+
+  STRIPE_WEBHOOK_SECRET = 'STRIPE_WEBHOOK_SECRET',
 }
 
 const env = {
@@ -145,6 +147,11 @@ const env = {
   },
   COMPLEMENT: {
     env: 'COMPLEMENT',
+    type: 'string',
+    required: true,
+  },
+  STRIPE_WEBHOOK_SECRET: {
+    env: 'STRIPE_WEBHOOK_SECRET',
     type: 'string',
     required: true,
   },

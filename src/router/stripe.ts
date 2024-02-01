@@ -5,11 +5,9 @@ import Stripe from 'stripe';
 
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('stripe');
 
-const { FRONTEND_URL } = config;
+const { FRONTEND_URL, STRIPE_WEBHOOK_SECRET } = config;
 
 const router = Router();
-
-const endpointSecret = 'whsec_c5d5cb4c69c413c62f75201738a8595f95d5182bc37a91d53c4ae694b22ae2c1';
 
 router.get('/success', async (req: Request, res: Response) => {
   try {
@@ -56,14 +54,14 @@ export const webhook = async (request: Request, response: Response) => {
   let event = request.body;
   // Only verify the event if you have an endpoint secret defined.
   // Otherwise use the basic event deserialized with JSON.parse
-  if (endpointSecret) {
+  if (STRIPE_WEBHOOK_SECRET) {
     // Get the signature sent by Stripe
     const signature = request.headers['stripe-signature'];
     try {
       event = Stripe.webhooks.constructEvent(
         request.body,
         signature as unknown as string | string[] | Buffer,
-        endpointSecret,
+        STRIPE_WEBHOOK_SECRET,
       );
     } catch (err: unknown) {
       logError('⚠️  Webhook signature verification failed.', err);
