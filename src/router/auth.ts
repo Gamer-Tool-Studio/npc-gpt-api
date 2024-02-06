@@ -94,7 +94,7 @@ router.post('/local/login', async (req: Request, res: Response) => {
     }
 
     if (!user.verifyPassword(password)) {
-      return res.status(403).json({ error: 'login password error', msg: 'WRONG_PASSWORD' });
+      return res.status(403).json({ error: 'Wrong username or password' });
     }
 
     const filter = ['id', 'username', 'email'];
