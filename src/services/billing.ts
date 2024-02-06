@@ -4,6 +4,9 @@
 import { CreateCompletionResponseUsage } from 'openai';
 import mongoDB from 'src/database';
 import { DataBaseSchemas } from 'src/types/enums';
+import config from 'src/config';
+
+const { STRIPE_SECRET_KEY } = config;
 
 // import { encode } from 'gpt-3-encoder';
 // const { encode } = await import('gpt-3-encoder');
@@ -13,7 +16,7 @@ const { logDebug, logError } = require('src/core-services/logFunctionFactory').g
 // import DB from 'src/database';
 
 const stripe = require('stripe')(
-  'sk_test_51ORmw8IMj18eIBAqlRyl0sq4xuBwyDY7v7T5aWPVhVcfi5YpAGWLhGP02TJFYpLec0dWX1bBLmE59IlI9UzkkOBj00VYu5Eq3E',
+  STRIPE_SECRET_KEY,
 );
 
 type CheckoutSessionCompleted = {

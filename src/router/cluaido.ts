@@ -1,8 +1,12 @@
 import { Request, Response, Router } from 'express';
 import DB from 'src/database';
-// const fs = require('fs').promises;
+
+import config from 'src/config';
+
 const path = require('path');
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('stripe');
+
+const { STRIPE_SKU_PLATFORM } = config;
 
 const router = Router();
 
@@ -35,7 +39,7 @@ router.get('/pricing-list', async (req: Request, res: Response) => {
   logDebug('pricing-list');
 
   try {
-    const pricingList = await DB.find('sku', { platform: 'cluaido-test' }, null, { sort: { value: 1 } });
+    const pricingList = await DB.find('sku', { platform: STRIPE_SKU_PLATFORM }, null, { sort: { value: 1 } });
     logDebug('pricingList', pricingList);
 
     res.json(pricingList);

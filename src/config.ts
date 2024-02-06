@@ -28,7 +28,9 @@ enum EnvEnum {
   DB_NAME = 'DB_NAME',
   COMPLEMENT = 'COMPLEMENT',
 
+  STRIPE_SECRET_KEY = 'STRIPE_SECRET_KEY',
   STRIPE_WEBHOOK_SECRET = 'STRIPE_WEBHOOK_SECRET',
+  STRIPE_SKU_PLATFORM = 'STRIPE_SKU_PLATFORM',
 }
 
 const env = {
@@ -150,8 +152,18 @@ const env = {
     type: 'string',
     required: true,
   },
+  STRIPE_SECRET_KEY: {
+    env: 'STRIPE_SECRET_KEY',
+    type: 'string',
+    required: true,
+  },
   STRIPE_WEBHOOK_SECRET: {
     env: 'STRIPE_WEBHOOK_SECRET',
+    type: 'string',
+    required: true,
+  },
+  STRIPE_SKU_PLATFORM: {
+    env: 'STRIPE_SKU_PLATFORM',
     type: 'string',
     required: true,
   },
