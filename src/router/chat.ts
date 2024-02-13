@@ -6,7 +6,7 @@ import { characterScriptBuilder } from 'src/lib/characterBuilder';
 import { isArrayOf } from 'src/lib/util';
 import { ChatCompletionRequestMessage, CreateCompletionResponseUsage } from 'openai';
 import { ChatCompletionRequestMessageClass } from 'src/types/openai';
-import { updateBilling } from 'src/services/billing';
+import { hasBalance, updateBilling } from 'src/services/billing';
 
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('chat');
 
@@ -33,9 +33,13 @@ router.post('/send-message', async (req: Request, res: Response) => {
     const { userInput } = req.body;
     let { chatHistory } = req.body as { chatHistory: Array<ChatCompletionRequestMessage> };
 
-    // TODO: when does the character is initiated
+    const hasBalanceResult = await hasBalance(req.user?.id as string);
+    logDebug('send-message hasBalance:', hasBalanceResult);
+    if (!hasBalanceResult) {
+      res.status(403).json({ error: 'Insufficient balance' });
+      return;
+    }
 
-    // TODO: get message from redis to get the character history
     logDebug('send-message userInput:', userInput);
 
     if (!isArrayOf<ChatCompletionRequestMessage>(chatHistory, ['role', 'content'])) {

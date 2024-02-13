@@ -102,6 +102,13 @@ export const checkBalance = async (accountId?: string) => {
 
   return userBilling;
 };
+export const hasBalance = async (accountId?: string) => {
+  logDebug(`checkBalance ${accountId}`);
+  const userBilling = await mongoDB.findOne(DataBaseSchemas.BILLING, { accountId });
+  logDebug('userBilling ', userBilling);
+
+  return userBilling.availableInputTokens > 0 && userBilling.availableOutputTokens > 0;
+};
 
 const createPaymentLink = async (price: string, mode: string, email: string) => {
   const session = await stripe.checkout.sessions.create({
