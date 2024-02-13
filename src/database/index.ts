@@ -49,7 +49,6 @@ const Database: DataBase = {
 
   findSKU: (data: any, options: any) => mongoDB.sku.findOne(data, options),
 
-  createAccount: (data: any, options: any) => mongoDB.account.create(data, options),
 
   findOneCharacter: (filter: any, select: any, options: any) => mongoDB.character.findOne(filter, select, options),
 

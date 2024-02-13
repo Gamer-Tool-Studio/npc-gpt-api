@@ -11,14 +11,6 @@ function loadModels() {
 
   logDebug('pathSchemas : ', pathSchemas);
 
-  // const account = './schemas/account';
-  // const billing = './schemas/billing';
-  // const billingDay = './schemas/billingDay';
-
-  // MongoModels.account = mongoose.model('account', require(`${account}`));
-  // MongoModels.billing = mongoose.model('billing', require(`${billing}`));
-  // MongoModels.billingDay = mongoose.model('billingDay', require(`${billingDay}`));
-
   fs.readdirSync(pathSchemas).forEach(async (file: string) => {
     const extension = file.slice(file.length - 3, file.length);
     if (file === 'index.ts' || !['.js', '.ts'].includes(extension)) return;

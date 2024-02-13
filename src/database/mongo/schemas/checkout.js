@@ -2,8 +2,7 @@ const { Schema } = require('mongoose');
 
 const checkoutSchema = new Schema(
   {
-    accountId: String,
-    sessionId: String,
+    accountId: { type: Schema.Types.ObjectId, ref: 'user' },
     checkoutSessions: [Object],
   },
   { collection: 'checkout', versionKey: false },
