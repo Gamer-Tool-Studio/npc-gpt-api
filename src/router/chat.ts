@@ -36,7 +36,7 @@ router.post('/send-message', async (req: Request, res: Response) => {
     const hasBalanceResult = await hasBalance(req.user?.id as string);
     logDebug('send-message hasBalance:', hasBalanceResult);
     if (!hasBalanceResult) {
-      res.status(403).json({ error: 'Insufficient balance' });
+      res.status(402).json({ error: 'Insufficient balance' });
       return;
     }
 
