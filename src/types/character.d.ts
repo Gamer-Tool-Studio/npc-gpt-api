@@ -8,6 +8,7 @@ export type CharacterType = {
   'background story': string;
   'game knowledge': string;
   interests: Record<string, number>;
-  supportiveness: number;
+  friendliness: "enemy" | "low" | "neutral"| "high";
   maxOutputWords: number;
+  environment: string;
 };

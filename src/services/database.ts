@@ -30,8 +30,9 @@ const getCharacterJson: GetCharacterJson = async (a) => {
         Technology: 7,
         Cars: 9,
       },
-      supportiveness: 5,
+      friendliness: 'enemy',
       maxOutputWords: 400,
+      environment: 'RPG game',
     },
   };
 };
