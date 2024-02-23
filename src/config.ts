@@ -11,7 +11,9 @@ enum EnvEnum {
   NODE_ENV = 'nodeEnv',
   DOMAIN_ENV = 'domain_env',
   ACCEPTED_LANGS = 'acceptedLanguages',
+  
   OPENAI_API_KEY = 'OPENAI_API_KEY',
+  OPENAI_GPT_MODEL = 'OPENAI_GPT_MODEL',
   REDIS_URL = 'REDIS_URL',
   USE_REDIS = 'USE_REDIS',
   GOOGLE_CLIENT_ID = 'GOOGLE_CLIENT_ID',
@@ -79,6 +81,11 @@ const env = {
   },
   OPENAI_API_KEY: {
     env: 'OPENAI_API_KEY',
+    type: 'string',
+    required: true,
+  },
+  OPENAI_GPT_MODEL: {
+    env: 'OPENAI_GPT_MODEL',
     type: 'string',
     required: true,
   },
