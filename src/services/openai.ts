@@ -4,7 +4,7 @@ import { ChatCompletionRequestMessageClass } from 'src/types/openai';
 
 import config from 'src/config';
 
-const { TESTING } = config;
+const { TESTING, OPENAI_GPT_MODEL } = config;
 
 // type GeneratePromptRes = Record<string, string>;
 type GeneratePromptReq = ({
@@ -48,7 +48,7 @@ const createCompletion = async ({
 
   const response = await openai
     .createChatCompletion({
-      model: 'gpt-4-1106-preview',
+      model: OPENAI_GPT_MODEL,
       messages,
       max_tokens: 60,
       temperature: 0.5,
