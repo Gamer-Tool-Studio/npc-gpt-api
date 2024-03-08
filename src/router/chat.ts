@@ -1,12 +1,11 @@
 import { Router, Request, Response } from 'express';
-import { listEngines, createCompletion, generatePrompt } from '~/services/openai';
+import { listEngines } from '~/services/openai';
 // import { getCharacterJson } from 'src/services/database';
 import parameterValidator from 'src/core-services/parameterValidator';
 import { characterScriptBuilder } from 'src/lib/characterBuilder';
-import { isArrayOf } from 'src/lib/util';
-import { ChatCompletionRequestMessage, CreateCompletionResponseUsage } from 'openai';
-import { ChatCompletionRequestMessageClass } from 'src/types/openai';
-import { hasBalance, updateBilling } from 'src/services/billing';
+import { ChatCompletionRequestMessage } from 'openai';
+import sendMessage from 'src/services/chat';
+import { ErrorType, errors } from 'src/constants';
 
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('chat');
 
@@ -31,60 +30,21 @@ router.post('/send-message', async (req: Request, res: Response) => {
     parameterValidator(req.body, params);
 
     const { userInput } = req.body;
-    let { chatHistory } = req.body as { chatHistory: Array<ChatCompletionRequestMessage> };
+    const { chatHistory } = req.body as { chatHistory: Array<ChatCompletionRequestMessage> };
+    const { characterContext } = req.body;
 
-    const hasBalanceResult = await hasBalance(req.user?.id as string);
-    logDebug('send-message hasBalance:', hasBalanceResult);
-    if (!hasBalanceResult) {
-      res.status(402).json({ error: 'Insufficient balance' });
-      return;
-    }
+    const sendMessageResult = await sendMessage({
+      userId: req.user?.id as string, userInput, chatHistory, characterContext,
+    });
 
-    logDebug('send-message userInput:', userInput);
-
-    if (!isArrayOf<ChatCompletionRequestMessage>(chatHistory, ['role', 'content'])) {
-      const { characterContext } = req.body;
-      logDebug('create new history for character', characterContext);
-
-      if (!characterContext) {
-        throw new Error('A characterContext object is required');
-      }
-
-      // const { characterJson } = await getCharacterJson(characterContext);
-      const character = characterScriptBuilder(characterContext);
-      chatHistory = [new ChatCompletionRequestMessageClass('system', character, characterContext.name)];
-      // is this correct, maybe we should initiate a new history instead of error
-      // res.status(500).json({ error: `No History for this ${characterId} and ${playerId}` });
-    }
-
-    const { messages } = await generatePrompt({ userInput, chatHistory });
-
-    logDebug('messages:', messages);
-
-    const response = await createCompletion({ messages });
-
-    // const response = { usage: { prompt_tokens: 261, completion_tokens: 60, total_tokens: 321 } };
-    logDebug('Response createCompletion:', response);
-
-    // TODO: Update billing
-    const updateBillingRes = await updateBilling(
-      req.user?.id as string,
-      response.usage as CreateCompletionResponseUsage,
-    );
-    logDebug('send-message inputBillingEvent res:', updateBillingRes);
-    // res.json({ response: 'generatedResponse', chatHistory: [...messages, 'generatedResponse'] });
-
-    const { choices } = response;
-
-    if (choices && choices.length > 0) {
-      const generatedResponse = choices[0].message;
-      res.json({ response: generatedResponse, chatHistory: [...messages, generatedResponse] });
-    } else {
-      res.status(500).json({ error: 'No response from the OpenAI API' });
-    }
+    res.json(sendMessageResult);
   } catch (error: any) {
     logError('Error:', error?.data?.error || error);
-    res.status(500).json({ error, message: `An error occurred: ${error.message}` });
+    if (error in ErrorType) {
+      res.status(errors[error].status).json({ msg: errors[error].msg });
+    } else {
+      res.status(500).json({ error, message: `An error occurred: ${error.message}` });
+    }
   }
 });
 

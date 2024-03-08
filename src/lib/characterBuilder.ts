@@ -1,26 +1,26 @@
 import type { CharacterType } from 'src/types';
 
-function getIndefiniteArticle(word: string): string {
-  // Convert the word to lowercase for case-insensitive comparison
-  const lowercaseWord = word.toLowerCase();
+// function getIndefiniteArticle(word: string): string {
+//   // Convert the word to lowercase for case-insensitive comparison
+//   const lowercaseWord = word.toLowerCase();
 
-  // Words that start with a vowel (a, e, i, o, u) take "an" as the indefinite article
-  const vowels = ['a', 'e', 'i', 'o', 'u'];
-  if (vowels.includes(lowercaseWord.charAt(0))) {
-    return 'an';
-  }
+//   // Words that start with a vowel (a, e, i, o, u) take "an" as the indefinite article
+//   const vowels = ['a', 'e', 'i', 'o', 'u'];
+//   if (vowels.includes(lowercaseWord.charAt(0))) {
+//     return 'an';
+//   }
 
-  // Special cases for words starting with a silent 'h' and a vowel sound
-  const silentHExceptions = ['honest', 'hour', 'heir', 'honor', 'honour'];
-  for (const exception of silentHExceptions) {
-    if (lowercaseWord.startsWith(exception)) {
-      return 'an';
-    }
-  }
+//   // Special cases for words starting with a silent 'h' and a vowel sound
+//   const silentHExceptions = ['honest', 'hour', 'heir', 'honor', 'honour'];
+//   for (const exception of silentHExceptions) {
+//     if (lowercaseWord.startsWith(exception)) {
+//       return 'an';
+//     }
+//   }
 
-  // Default to "a" for all other words
-  return 'a';
-}
+//   // Default to "a" for all other words
+//   return 'a';
+// }
 
 function joinWithCommasAnd(array: string[]): string {
   if (!Array.isArray(array)) {
@@ -42,12 +42,10 @@ function joinWithCommasAnd(array: string[]): string {
   return `${firstPart}, and ${lastItem}`;
 }
 
-const buildPersonality = (personality: CharacterType['personality']): string => {
-  const personalityString = `Your personality is ${joinWithCommasAnd(personality.traits)}`;
+const buildPersonality = (personalityTraits: CharacterType['personalityTraits'], dialogueStyle: CharacterType['dialogueStyle']): string => {
+  const personalityString = `Your personality is ${personalityTraits}`;
 
-  return `${personalityString}. You speak in ${getIndefiniteArticle(personality.dialogueStyle)} ${
-    personality.dialogueStyle
-  } manner.`;
+  return `${personalityString}. You speak in ${dialogueStyle} manner.`;
 };
 
 const buildBackgroundStory = (backgroundStory: CharacterType['background story']): string => {
@@ -58,7 +56,7 @@ const buildGameKnowledge = (gameKnowledge: CharacterType['game knowledge']): str
 };
 const buildInterests = (interests: CharacterType['interests']): string => {
   return `Besides game events you are only able to talk about the following interests of yours ${joinWithCommasAnd(
-    Object.entries(interests).map(([i, v]) => `${i}`),
+    Object.entries(interests).map(([i]) => `${i}`),
   )}.`;
 };
 const buildFriendliness = (friendliness: CharacterType['friendliness']): string => {
@@ -67,7 +65,7 @@ const buildFriendliness = (friendliness: CharacterType['friendliness']): string 
 };
 
 export const characterScriptBuilder = (character: CharacterType) => {
-  return `Role play as ${character.name}, a character in a ${character.environment}. ${buildPersonality(character.personality)} ${buildBackgroundStory(
+  return `Role play as ${character.name}, a character in a ${character.environment}. ${buildPersonality(character.personalityTraits, character.dialogueStyle)} ${buildBackgroundStory(
     character['background story'],
   )} ${buildGameKnowledge(character['game knowledge'])} ${buildInterests(character.interests)} ${buildFriendliness(
     character.friendliness,

@@ -29,12 +29,15 @@ router.post('/perDay', async (req: Request, res: Response) => {
   try {
     logDebug(' **** Token Daily Usage **** ', req.user);
     const { year, month, accountId } = req.body as { year: number; month: number; accountId: string };
-    logDebug(' **** MONTH ', month, year, accountId);
+    logDebug(' **** MONTH ', month, year, accountId, new Date(year, month, 1));
 
-    const savedUser = await DB.findBillingDay({
-      accountId: req.user?.id,
-      createdAt: { $gte: new Date(year, month, 1), $lt: new Date(year, month + 1, 1) },
-    });
+    const savedUser = await DB.find(
+      DataBaseSchemas.BILLING_DAY,
+      {
+        accountId: req.user?.id,
+        createdAt: { $gte: new Date(year, month, 1), $lt: new Date(year, month + 1, 1) },
+      },
+    );
     logDebug(' **** savedUser ', savedUser);
     const numberOfDaysInMonth = new Date(year, month, 0).getDate(); // Calculate the number of days in the specified month
 

@@ -33,24 +33,28 @@ const options = { upsert: true, new: true };
 
 const addTokens = async (checkoutSessionCompleted: CheckoutSessionCompleted) => {
   try {
-    logDebug('addTokens:');
-    // verificar se session id já foi usado antes atraves da BD
-    const checkoutSessionStored = await mongoDB.findOne(DataBaseSchemas.CHECKOUT, { id: checkoutSessionCompleted.id });
+    logDebug('addTokens:', checkoutSessionCompleted.id);
 
-    if (checkoutSessionStored) {
-      logDebug('checkoutSessionStored', checkoutSessionStored);
-      return checkoutSessionStored;
-    }
+    // verificar se session id já foi usado antes atraves da BD
+
     const { customer_email: customerEmail, payment_intent: paymentIntent } = checkoutSessionCompleted;
     logDebug('customerEmail', customerEmail);
-    const paymentIntentResponse = await stripe.paymentIntents.retrieve(paymentIntent);
-    logDebug('paymentIntentResponse', paymentIntentResponse);
-
-    // const session = await stripe.checkout.sessions.retrieve(checkoutSessionCompleted);
-    // logDebug('session', session);
 
     const user = await mongoDB.findOneAndUpdate(DataBaseSchemas.USER, { email: customerEmail });
     logDebug('user id', user.toJSON().id);
+
+    const checkoutSessionStored = await mongoDB.findOne(DataBaseSchemas.CHECKOUT, { accountId: user.toJSON().id });
+
+    logDebug('checkoutSessionStored', checkoutSessionStored);
+    const checkCheckoutSession = checkoutSessionStored?.checkoutSessions
+      .find((session: { id:string }) => session.id === checkoutSessionCompleted.id);
+
+    if (checkCheckoutSession) {
+      logDebug('checkCheckoutSession: Session already processed', checkCheckoutSession);
+      return checkCheckoutSession;
+    }
+    const paymentIntentResponse = await stripe.paymentIntents.retrieve(paymentIntent);
+    logDebug('paymentIntentResponse', paymentIntentResponse);
 
     // Access purchased items
     const lineItems = await stripe.checkout.sessions.listLineItems(checkoutSessionCompleted.id);
@@ -120,7 +124,7 @@ const createPaymentLink = async (price: string, mode: string, email: string) => 
       },
     ],
     mode,
-    success_url: 'http://localhost:3002/api/v1/stripe/success?session_id={CHECKOUT_SESSION_ID}', // Redirect after successful payment
+    success_url: 'https://gamertoolstudio.com/dashboard', // Redirect after successful payment
     cancel_url: 'https://gamertoolstudio.com/pricing/', // Redirect if the user cancels the payment
     customer_email: email, // Specify the customer's email here
   });
@@ -138,8 +142,7 @@ const updateBilling = async (
   { prompt_tokens, completion_tokens, total_tokens }: CreateCompletionResponseUsage,
 ) => {
   logDebug(
-    `updateBilling ${accountId}:
-    prompt_tokens: ${prompt_tokens}; completion_tokens: ${completion_tokens}; total_tokens: ${total_tokens}`,
+    `updateBilling ${accountId}:\nprompt_tokens: ${prompt_tokens}; completion_tokens: ${completion_tokens}; total_tokens: ${total_tokens}`,
   );
   const today = new Date();
   const day = today.getDate().toString();
@@ -155,7 +158,20 @@ const updateBilling = async (
     };
     const result = await mongoDB.findOneAndUpdate(DataBaseSchemas.BILLING, { accountId }, updateBody, options);
     logDebug('result', result);
-    return { ...result };
+
+    const billingDayKey = await mongoDB.findOneAndUpdate(
+      DataBaseSchemas.BILLING_DAY,
+      { key, accountId },
+      {
+        $inc: {
+          outputWords: Number(completion_tokens),
+          inputWords: Number(prompt_tokens),
+        },
+      },
+      options,
+    );
+
+    return { ...result, billingDayKey };
   } catch (ex) {
     logError('Error updating billing ', ex);
     throw ex;
