@@ -1,26 +1,26 @@
 import type { CharacterType } from 'src/types';
 
-function getIndefiniteArticle(word: string): string {
-  // Convert the word to lowercase for case-insensitive comparison
-  const lowercaseWord = word.toLowerCase();
+// function getIndefiniteArticle(word: string): string {
+//   // Convert the word to lowercase for case-insensitive comparison
+//   const lowercaseWord = word.toLowerCase();
 
-  // Words that start with a vowel (a, e, i, o, u) take "an" as the indefinite article
-  const vowels = ['a', 'e', 'i', 'o', 'u'];
-  if (vowels.includes(lowercaseWord.charAt(0))) {
-    return 'an';
-  }
+//   // Words that start with a vowel (a, e, i, o, u) take "an" as the indefinite article
+//   const vowels = ['a', 'e', 'i', 'o', 'u'];
+//   if (vowels.includes(lowercaseWord.charAt(0))) {
+//     return 'an';
+//   }
 
-  // Special cases for words starting with a silent 'h' and a vowel sound
-  const silentHExceptions = ['honest', 'hour', 'heir', 'honor', 'honour'];
-  for (const exception of silentHExceptions) {
-    if (lowercaseWord.startsWith(exception)) {
-      return 'an';
-    }
-  }
+//   // Special cases for words starting with a silent 'h' and a vowel sound
+//   const silentHExceptions = ['honest', 'hour', 'heir', 'honor', 'honour'];
+//   for (const exception of silentHExceptions) {
+//     if (lowercaseWord.startsWith(exception)) {
+//       return 'an';
+//     }
+//   }
 
-  // Default to "a" for all other words
-  return 'a';
-}
+//   // Default to "a" for all other words
+//   return 'a';
+// }
 
 function joinWithCommasAnd(array: string[]): string {
   if (!Array.isArray(array)) {
@@ -42,37 +42,34 @@ function joinWithCommasAnd(array: string[]): string {
   return `${firstPart}, and ${lastItem}`;
 }
 
-const buildPersonality = (personality: CharacterType['personality']): string => {
-  const personalityString = `Your personality is ${joinWithCommasAnd(personality.traits)}`;
+const buildPersonality = (personalityTraits: CharacterType['personalityTraits'], dialogueStyle: CharacterType['dialogueStyle']): string => {
+  const personalityString = `Your personality is ${personalityTraits}`;
 
-  return `${personalityString}.You speak in ${getIndefiniteArticle(personality.dialogueStyle)} ${
-    personality.dialogueStyle
-  } manner.`;
+  return `${personalityString}. You speak in ${dialogueStyle} manner.`;
 };
 
 const buildBackgroundStory = (backgroundStory: CharacterType['background story']): string => {
-  return `Your background story is: ${backgroundStory}.`;
+  return `Your background story is: ${backgroundStory}`;
 };
 const buildGameKnowledge = (gameKnowledge: CharacterType['game knowledge']): string => {
-  return `Your knowledge about this RPG game events is that: ${gameKnowledge}. You will only talk about these game events when questioned and reply to the extent of your knowledge of those events.`;
+  return `Your knowledge about the events is: ${gameKnowledge}. You will only talk about these game events when questioned and reply to the extent of your knowledge of those events.`;
 };
 const buildInterests = (interests: CharacterType['interests']): string => {
-  return `Besides game events you have the following interests and respective knowledge scores. From 0 to 10, with 0 being oblivious and 10 being an expert. Your interests are ${joinWithCommasAnd(
-    Object.entries(interests).map(([i, v]) => `${i}  with a  knowledge score of ${v}/10`),
+  return `Besides game events you are only able to talk about the following interests of yours ${joinWithCommasAnd(
+    Object.entries(interests).map(([i]) => `${i}`),
   )}.`;
 };
-const buildSupportiveness = (supportiveness: CharacterType['supportiveness']): string => {
-  return `Your level of support towards the player is ${supportiveness} of 10.`;
+const buildFriendliness = (friendliness: CharacterType['friendliness']): string => {
+  // use the values in the enum to build the string
+  return `Your level of friendliness towards the player is ${friendliness}!`;
 };
 
 export const characterScriptBuilder = (character: CharacterType) => {
-  return `Role play as ${character.name}, a character of a RPG game, you are ${
-    character.age
-  } years old. ${buildPersonality(character.personality)} ${buildBackgroundStory(
+  return `Role play as ${character.name}, a character in a ${character.environment}. ${buildPersonality(character.personalityTraits, character.dialogueStyle)} ${buildBackgroundStory(
     character['background story'],
-  )} ${buildGameKnowledge(character['game knowledge'])} ${buildInterests(character.interests)} ${buildSupportiveness(
-    character.supportiveness,
-  )} You are only able to talk about your background, events knowledge, interests and nothing else! Don't mention your an AI and stick to the your character context. Answer the following player prompt and stick to the scope of their question only. Answuer in less than ${
+  )} ${buildGameKnowledge(character['game knowledge'])} ${buildInterests(character.interests)} ${buildFriendliness(
+    character.friendliness,
+  )} Answer the following player prompt according to the scope of their question only in less than ${
     character.maxOutputWords
   } words.`;
 };
