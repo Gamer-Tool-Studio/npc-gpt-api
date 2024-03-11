@@ -1,6 +1,12 @@
-const { Router } = require('express');
-const passport = require('passport');
-const { getApiToken } = require('src/services/auth');
+import {
+  Response, Request, NextFunction, Router,
+} from 'express';
+
+import passport from 'passport';
+import { getApiToken } from 'src/services/auth';
+
+const { ErrorType: { UNAUTHORIZED }, errors } = require('src/constants');
+
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('apiAuthenticator');
 
 // const challenges = require("$services/challenges");
@@ -22,20 +28,18 @@ const authRoutes = [
   '/api/v1/user/balance',
 ];
 
-const signValidatorHandler = async (req, res, next) => {
+const signValidatorHandler = async (req: Request, res: Response, next: NextFunction) => {
   logDebug(' API AUTHENTICATOR', `URL: ${req.originalUrl} METHOD: ${req.method}`);
-
-  logDebug(' API HEADERS: ', req.headers);
 
   const { authorization } = req.headers;
 
   const calledUrl = req.originalUrl.split('?')[0];
   if (authRoutes.includes(calledUrl)) {
     try {
-      logDebug('isAuthenticated ', req.isAuthenticated());
-
+      if (!authorization) {
+        return res.status(errors[UNAUTHORIZED].status).json(errors[UNAUTHORIZED].msg);
+      }
       const token = authorization.split('Bearer ')[1];
-      // logDebug('token ', token);
 
       if (typeof token === 'string' && token.startsWith('GTS-')) {
         const jwt = await getApiToken(token);
@@ -55,6 +59,6 @@ const signValidatorHandler = async (req, res, next) => {
   }
 };
 
-module.exports = () => {
+export = () => {
   return Router().use('/api', signValidatorHandler);
 };
