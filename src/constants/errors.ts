@@ -8,6 +8,7 @@ export const ErrorType = {
   NO_RESPONSE_FROM_OPENAI: 'NoResponseFromOpenAIError',
   NO_HISTORY: 'NoHistoryError',
   CHARACTER_CONTEXT: 'CharacterContextError',
+  UNAUTHORIZED: 'UnauthorizedError',
 };
 
 export const errors: { [key: string]: IError } = {
@@ -26,6 +27,10 @@ export const errors: { [key: string]: IError } = {
   CharacterContextError: {
     status: 500,
     msg: 'A characterContext object is required',
+  },
+  UnauthorizedError: {
+    status: 401,
+    msg: 'Unauthorized',
   },
 
 };

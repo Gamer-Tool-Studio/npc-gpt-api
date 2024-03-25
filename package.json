@@ -13,7 +13,8 @@
     "development": "nodemon build/index.js --watch build",
     "prod": "nodemon dist/index.js --watch dist",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint"
+    "lint": "eslint",
+    "lint:fix": "eslint . --fix"
   },
   "engines": {
     "node": "16.x"
