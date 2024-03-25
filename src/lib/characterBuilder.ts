@@ -22,7 +22,7 @@ import type { CharacterType } from 'src/types';
 //   return 'a';
 // }
 
-function joinWithCommasAnd(array: string[]): string {
+export function joinWithCommasAnd(array: string[]): string {
   if (!Array.isArray(array)) {
     throw new Error('Input must be an array.');
   }
@@ -55,9 +55,7 @@ const buildGameKnowledge = (gameKnowledge: CharacterType['game knowledge']): str
   return `Your knowledge about the events is: ${gameKnowledge}. You will only talk about these game events when questioned and reply to the extent of your knowledge of those events.`;
 };
 const buildInterests = (interests: CharacterType['interests']): string => {
-  return `Besides game events you are only able to talk about the following interests of yours ${joinWithCommasAnd(
-    Object.entries(interests).map(([i]) => `${i}`),
-  )}.`;
+  return `Besides game events you are only able to talk about the following interests of yours ${interests}.`;
 };
 const buildFriendliness = (friendliness: CharacterType['friendliness']): string => {
   // use the values in the enum to build the string
@@ -73,5 +71,3 @@ export const characterScriptBuilder = (character: CharacterType) => {
     character.maxOutputWords
   } words.`;
 };
-
-export const todo = () => {};

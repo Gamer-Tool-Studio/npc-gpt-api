@@ -5,7 +5,7 @@ export type CharacterType = {
   dialogueStyle: string;
   'background story': string;
   'game knowledge': string;
-  interests: Record<string, number>;
+  interests: string;
   friendliness: 'enemy' | 'low' | 'neutral' | 'high';
   maxOutputWords: number;
   environment: string;

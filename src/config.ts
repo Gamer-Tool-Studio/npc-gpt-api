@@ -11,7 +11,7 @@ enum EnvEnum {
   NODE_ENV = 'nodeEnv',
   DOMAIN_ENV = 'domain_env',
   ACCEPTED_LANGS = 'acceptedLanguages',
-  
+
   OPENAI_API_KEY = 'OPENAI_API_KEY',
   OPENAI_GPT_MODEL = 'OPENAI_GPT_MODEL',
   REDIS_URL = 'REDIS_URL',
@@ -185,7 +185,7 @@ type TypeMapping = {
   'enum': string;
 };
 
-type Config = {
+export type Config = {
   [key in EnvEnum]: typeof env[key]['type'] extends keyof TypeMapping ? TypeMapping[typeof env[key]['type']] : never;
 };
 

@@ -24,10 +24,7 @@ const getCharacterJson: GetCharacterJson = async (a) => {
       'background story':
         'John is a skilled adventurer who has traveled the world in search of hidden treasures. He is always eager to help others and believes in the power of friendship.',
       'game knowledge': 'John knows that there was a crime scene, he also knows about Alice affair with Joseph',
-      interests: {
-        Technology: 7,
-        Cars: 9,
-      },
+      interests:"Technology and Cars",
       friendliness: 'enemy',
       maxOutputWords: 400,
       environment: 'RPG game',
