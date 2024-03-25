@@ -48,11 +48,11 @@ const buildPersonality = (personalityTraits: CharacterType['personalityTraits'],
   return `${personalityString}. You speak in ${dialogueStyle} manner.`;
 };
 
-const buildBackgroundStory = (backgroundStory: CharacterType['background story']): string => {
+const buildBackgroundStory = (backgroundStory: CharacterType['backgroundStory']): string => {
   return `Your background story is: ${backgroundStory}`;
 };
-const buildGameKnowledge = (gameKnowledge: CharacterType['game knowledge']): string => {
-  return `Your knowledge about the events is: ${gameKnowledge}. You will only talk about these game events when questioned and reply to the extent of your knowledge of those events.`;
+const buildGameKnowledge = (eventsKnowledge: CharacterType['eventsKnowledge']): string => {
+  return `Your knowledge about the events is: ${eventsKnowledge}. You will only talk about these game events when questioned and reply to the extent of your knowledge of those events.`;
 };
 const buildInterests = (interests: CharacterType['interests']): string => {
   return `Besides game events you are only able to talk about the following interests of yours ${interests}.`;
@@ -64,8 +64,8 @@ const buildFriendliness = (friendliness: CharacterType['friendliness']): string 
 
 export const characterScriptBuilder = (character: CharacterType) => {
   return `Role play as ${character.name}, a character in a ${character.environment}. ${buildPersonality(character.personalityTraits, character.dialogueStyle)} ${buildBackgroundStory(
-    character['background story'],
-  )} ${buildGameKnowledge(character['game knowledge'])} ${buildInterests(character.interests)} ${buildFriendliness(
+    character.backgroundStory,
+  )} ${buildGameKnowledge(character.eventsKnowledge)} ${buildInterests(character.interests)} ${buildFriendliness(
     character.friendliness,
   )} Answer the following player prompt according to the scope of their question only in less than ${
     character.maxOutputWords
