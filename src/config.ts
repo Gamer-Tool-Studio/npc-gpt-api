@@ -33,6 +33,7 @@ enum EnvEnum {
   STRIPE_SECRET_KEY = 'STRIPE_SECRET_KEY',
   STRIPE_WEBHOOK_SECRET = 'STRIPE_WEBHOOK_SECRET',
   STRIPE_SKU_PLATFORM = 'STRIPE_SKU_PLATFORM',
+  STRIPE_PAYMENT_METHODS_TYPES = 'STRIPE_PAYMENT_METHODS_TYPES',
 }
 
 const env = {
@@ -171,6 +172,11 @@ const env = {
   },
   STRIPE_SKU_PLATFORM: {
     env: 'STRIPE_SKU_PLATFORM',
+    type: 'string',
+    required: true,
+  },
+  STRIPE_PAYMENT_METHODS_TYPES: {
+    env: 'STRIPE_PAYMENT_METHODS_TYPES',
     type: 'string',
     required: true,
   },

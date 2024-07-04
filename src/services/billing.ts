@@ -6,18 +6,13 @@ import mongoDB from 'src/database';
 import { DataBaseSchemas } from 'src/types/enums';
 import config from 'src/config';
 
-const { STRIPE_SECRET_KEY } = config;
+import Stripe from 'stripe';
 
-// import { encode } from 'gpt-3-encoder';
-// const { encode } = await import('gpt-3-encoder');
-// const { encode } = require('gpt-3-encoder');
+const { STRIPE_SECRET_KEY, STRIPE_PAYMENT_METHODS_TYPES } = config;
+
 const { logDebug, logError } = require('src/core-services/logFunctionFactory').getLogger('billing-service');
-// const { encode } = require('gpt-3-encoder');
-// import DB from 'src/database';
 
-const stripe = require('stripe')(
-  STRIPE_SECRET_KEY,
-);
+const stripe = new Stripe(STRIPE_SECRET_KEY);
 
 type CheckoutSessionCompleted = {
   [k: string]: any;
@@ -25,10 +20,6 @@ type CheckoutSessionCompleted = {
   payment_intent?: string;
 };
 
-// function countWords(str: string) {
-//   // return str.trim().split(/\s+/).length;
-//   return encode(str).length;
-// }
 const options = { upsert: true, new: true };
 
 const addTokens = async (checkoutSessionCompleted: CheckoutSessionCompleted) => {
@@ -52,6 +43,11 @@ const addTokens = async (checkoutSessionCompleted: CheckoutSessionCompleted) => 
     if (checkCheckoutSession) {
       logDebug('checkCheckoutSession: Session already processed', checkCheckoutSession);
       return checkCheckoutSession;
+    }
+
+    if (!paymentIntent) {
+      logError('No paymentIntent found');
+      return new Error('No paymentIntent found');
     }
     const paymentIntentResponse = await stripe.paymentIntents.retrieve(paymentIntent);
     logDebug('paymentIntentResponse', paymentIntentResponse);
@@ -114,9 +110,11 @@ export const hasBalance = async (accountId?: string) => {
   return userBilling.availableInputTokens > 0 && userBilling.availableOutputTokens > 0;
 };
 
-const createPaymentLink = async (price: string, mode: string, email: string) => {
+const createPaymentLink = async (price: string, mode: Stripe.Checkout.SessionCreateParams.Mode, email: string) => {
+  const paymentMethodTypes = STRIPE_PAYMENT_METHODS_TYPES.split(',') as Stripe.Checkout.SessionCreateParams.PaymentMethodType[];
+
   const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
+    payment_method_types: paymentMethodTypes,
     line_items: [
       {
         price,

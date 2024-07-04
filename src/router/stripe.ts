@@ -36,7 +36,7 @@ router.post('/create', async (req: Request, res: Response) => {
 
     const createPaymentLinkResponse = await createPaymentLink(
       req.body.price_id as string,
-      req.body.mode as string,
+      req.body.mode as Stripe.Checkout.SessionCreateParams.Mode,
       req.user?.email as string,
     );
     logDebug(' **** createPaymentLinkResponse ****  ', createPaymentLinkResponse);
