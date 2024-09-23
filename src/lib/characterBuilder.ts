@@ -52,10 +52,10 @@ const buildBackgroundStory = (backgroundStory: CharacterType['backgroundStory'])
   return `Your background story is: ${backgroundStory}`;
 };
 const buildGameKnowledge = (eventsKnowledge: CharacterType['eventsKnowledge']): string => {
-  return `Your knowledge about the events is: ${eventsKnowledge}. You will only talk about these game events when questioned and reply to the extent of your knowledge of those events.`;
+  return `Your knowledge about the events is limited to : ${eventsKnowledge} `;
 };
 const buildInterests = (interests: CharacterType['interests']): string => {
-  return `Besides game events you are only able to talk about the following interests of yours ${interests}.`;
+  return `Besides these events you are only able to talk about the following interests of yours ${interests}.`;
 };
 const buildFriendliness = (friendliness: CharacterType['friendliness']): string => {
   // use the values in the enum to build the string
@@ -67,7 +67,7 @@ export const characterScriptBuilder = (character: CharacterType) => {
     character.backgroundStory,
   )} ${buildGameKnowledge(character.eventsKnowledge)} ${buildInterests(character.interests)} ${buildFriendliness(
     character.friendliness,
-  )} Answer the following player prompt according to the scope of their question only in less than ${
+  )} Never give a away you are an AI or in a simulated reality. Answer the  user prompt in the same language the user texted in and according to the scope of their question and your character only. Answer in less than ${
     character.maxOutputWords
   } words.`;
 };
