@@ -11,9 +11,28 @@ const { STRIPE_SKU_PLATFORM } = config;
 const router = Router();
 
 router.get('/nft/:id.json', async (req: Request, res: Response) => {
-  const characterId = req.params.id;
+  let characterId = req.params.id;
 
   try {
+    if (characterId.startsWith('0x')) {
+      characterId = parseInt(characterId, 16).toString();
+    }
+    const characterJSON = await DB.findOneCharacter({ id: `cluaido:${characterId}` });
+    logDebug('characterJSON', characterJSON);
+    res.json(characterJSON);
+  } catch (error) {
+    logError('Error:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+router.get('/nft/:id', async (req: Request, res: Response) => {
+  let characterId = req.params.id;
+
+  try {
+    if (characterId.startsWith('0x')) {
+      characterId = parseInt(characterId, 16).toString();
+    }
     const characterJSON = await DB.findOneCharacter({ id: `cluaido:${characterId}` });
     logDebug('characterJSON', characterJSON);
     res.json(characterJSON);
