@@ -50,7 +50,7 @@ const createCompletion = async ({
     .createChatCompletion({
       model: OPENAI_GPT_MODEL,
       messages,
-      max_tokens: 5000,
+      max_tokens: 4096,
       temperature: 0.5,
     })
     .catch((err) => {
