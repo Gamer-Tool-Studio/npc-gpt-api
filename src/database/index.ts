@@ -47,6 +47,12 @@ const Database: DataBase = {
   findUserById: (id: any) => mongoDB.user.findById(id),
   registerUser: (data: any, options: any) => mongoDB.user.create(data, options),
 
+  // Organization methods
+  createOrganization: (data: any, options: any) => mongoDB.organization.create(data, options),
+  findOrganization: (filter: any, select: any, options: any) => mongoDB.organization.findOne(filter, select, options).populate('members', 'username email name picture role'),
+  UpdateOneOrganization: (filter: any, update: any, options: any) => mongoDB.organization.updateOne(filter, update, options),
+  findOrganizationById: (id: any) => mongoDB.organization.findById(id).populate('members', 'username email name picture role'),
+
   findSKU: (data: any, options: any) => mongoDB.sku.findOne(data, options),
 
   findOneCharacter: (filter: any, select: any, options: any) => mongoDB.character.findOne(filter, select, options),

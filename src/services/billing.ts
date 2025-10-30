@@ -28,42 +28,75 @@ const addTokens = async (checkoutSessionCompleted: CheckoutSessionCompleted) => 
 
     // verificar se session id já foi usado antes atraves da BD
 
-    const { customer_email: customerEmail, payment_intent: paymentIntent } = checkoutSessionCompleted;
+    const { customer_email: customerEmail, payment_intent: paymentIntent, metadata } = checkoutSessionCompleted;
     logDebug('customerEmail', customerEmail);
+    logDebug('metadata', metadata);
 
     const user = await mongoDB.findOneAndUpdate(DataBaseSchemas.USER, { email: customerEmail });
     logDebug('user id', user.toJSON().id);
 
+    // Check if session already processed
     const checkoutSessionStored = await mongoDB.findOne(DataBaseSchemas.CHECKOUT, { accountId: user.toJSON().id });
-
     logDebug('checkoutSessionStored', checkoutSessionStored);
+    
     const checkCheckoutSession = checkoutSessionStored?.checkoutSessions
       .find((session: { id:string }) => session.id === checkoutSessionCompleted.id);
 
     if (checkCheckoutSession) {
-      logDebug('checkCheckoutSession: Session already processed', checkCheckoutSession);
+      logDebug('Session already processed', checkCheckoutSession);
       return checkCheckoutSession;
     }
 
-    if (!paymentIntent) {
-      logError('No paymentIntent found');
-      return new Error('No paymentIntent found');
+    let purchasedPriceId: string | undefined;
+
+    // Check if price_id is in metadata (for test purchases or direct tracking)
+    if (metadata?.price_id) {
+      purchasedPriceId = metadata.price_id;
+      logDebug('Price ID from metadata:', purchasedPriceId);
+    } else {
+      // Retrieve from Stripe API for real purchases
+      if (!paymentIntent) {
+        logError('No paymentIntent found');
+        return new Error('No paymentIntent found');
+      }
+
+      const paymentIntentResponse = await stripe.paymentIntents.retrieve(paymentIntent);
+      logDebug('paymentIntentResponse', paymentIntentResponse);
+
+      // Get line items to find the purchased price
+      const lineItems = await stripe.checkout.sessions.listLineItems(checkoutSessionCompleted.id);
+      const purchasedItem = lineItems.data[0];
+      purchasedPriceId = purchasedItem?.price?.id;
     }
-    const paymentIntentResponse = await stripe.paymentIntents.retrieve(paymentIntent);
-    logDebug('paymentIntentResponse', paymentIntentResponse);
 
-    // Access purchased items
-    const lineItems = await stripe.checkout.sessions.listLineItems(checkoutSessionCompleted.id);
-    const purchasedItem = lineItems.data[0];
+    logDebug('Purchased price ID:', purchasedPriceId);
 
-    logDebug('purchasedItem', purchasedItem);
-
-    const item = await mongoDB.findSKU({ price_id: purchasedItem?.price?.id });
-    logDebug('item', item);
-
-    const updateBody = {
-      $inc: { availableInputTokens: Number(item.inputTokens), availableOutputTokens: Number(item.outputTokens) },
+    // Map Stripe Price IDs to token amounts
+    const priceToTokensMap: { [key: string]: { input: number, output: number } } = {
+      [process.env.STRIPE_PRICE_SOLO_DEV || '']: { input: 25000, output: 10000 },
+      [process.env.STRIPE_PRICE_INDIE_STUDIO || '']: { input: 250000, output: 100000 },
+      [process.env.STRIPE_PRICE_ENTERPRISE || '']: { input: 25000000, output: 10000000 },
     };
+
+    const tokens = priceToTokensMap[purchasedPriceId || ''];
+    if (!tokens) {
+      logError('Unknown price ID:', purchasedPriceId);
+      throw new Error('Unknown price ID - cannot allocate tokens');
+    }
+
+    const inputTokens = tokens.input;
+    const outputTokens = tokens.output;
+
+    logDebug('Adding tokens:', { inputTokens, outputTokens });
+
+    // Update billing with new tokens
+    const updateBody = {
+      $inc: { 
+        availableInputTokens: inputTokens, 
+        availableOutputTokens: outputTokens 
+      },
+    };
+    
     const userBilling = await mongoDB.findOneAndUpdate(
       DataBaseSchemas.BILLING,
       { accountId: user.toJSON().id },
@@ -71,7 +104,12 @@ const addTokens = async (checkoutSessionCompleted: CheckoutSessionCompleted) => 
       options,
     );
 
-    const sessionUpdateBody = { accountId: user.toJSON().id, $push: { checkoutSessions: checkoutSessionCompleted } };
+    // Store checkout session to prevent double processing
+    const sessionUpdateBody = { 
+      accountId: user.toJSON().id, 
+      $push: { checkoutSessions: checkoutSessionCompleted } 
+    };
+    
     const checkout = await mongoDB.findOneAndUpdate(
       DataBaseSchemas.CHECKOUT,
       { accountId: user.toJSON().id },
@@ -80,8 +118,7 @@ const addTokens = async (checkoutSessionCompleted: CheckoutSessionCompleted) => 
     );
 
     logDebug('checkout', checkout);
-
-    logDebug('userBilling', userBilling);
+    logDebug('userBilling updated', userBilling);
 
     return userBilling;
 
@@ -110,23 +147,35 @@ export const hasBalance = async (accountId?: string) => {
   return userBilling.availableInputTokens > 0 && userBilling.availableOutputTokens > 0;
 };
 
-const createPaymentLink = async (price: string, mode: Stripe.Checkout.SessionCreateParams.Mode, email: string) => {
+const createPaymentLink = async (stripePriceId: string, mode: Stripe.Checkout.SessionCreateParams.Mode, email: string) => {
+  const { FRONTEND_URL } = config;
   const paymentMethodTypes = STRIPE_PAYMENT_METHODS_TYPES.split(',') as Stripe.Checkout.SessionCreateParams.PaymentMethodType[];
+
+  logDebug('Creating checkout session:', { stripePriceId, mode, email });
+  
+  // For development, use localhost backend URL
+  const backendUrl = process.env.BACKEND_URL || 'http://localhost:3002';
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: paymentMethodTypes,
     line_items: [
       {
-        price,
+        price: stripePriceId, // Use the Stripe Price ID directly
         quantity: 1,
       },
     ],
     mode,
-    success_url: 'https://gamertoolstudio.com/dashboard', // Redirect after successful payment
-    cancel_url: 'https://gamertoolstudio.com/pricing/', // Redirect if the user cancels the payment
-    customer_email: email, // Specify the customer's email here
+    success_url: `${backendUrl}/api/v1/stripe/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${FRONTEND_URL}/pricing?payment=cancelled`,
+    customer_email: email,
+    // Metadata to track the purchase
+    metadata: {
+      user_email: email,
+      price_id: stripePriceId,
+    },
   });
 
+  logDebug('Checkout session created:', session.id);
   return session;
 };
 

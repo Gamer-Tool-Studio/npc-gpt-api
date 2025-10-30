@@ -4,9 +4,11 @@ const bcrypt = require('bcryptjs');
 const OrganizationSchema = new Schema(
   {
     name: String,
+    orgId: { type: String, unique: true, required: true }, // Public org identifier (org_xxxxx)
     members: [{ type: Schema.Types.ObjectId, ref: 'user' }],
+    ownerId: { type: Schema.Types.ObjectId, ref: 'user' }, // First admin user (set after user creation)
   },
-  { collection: 'user', versionKey: false },
+  { collection: 'organization', versionKey: false },
 );
 OrganizationSchema.set('timestamps', true);
 // sessionSchema .createIndex({ closeOfferAt: 1 }, { expireAfterSeconds: 300 });
