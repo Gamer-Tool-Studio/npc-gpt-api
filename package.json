@@ -64,11 +64,8 @@
     "webpack-shell-plugin-next": "^2.3.1"
   },
   "dependencies": {
-<<<<<<< HEAD
     "12factor-config": "^2.0.0",
-=======
     "@hellocoop/express": "^1.19.3",
->>>>>>> 05321cc (feat: B2B SaaS transformation - org-first architecture, roles, Stripe one-time payments, Hello.coop SSO integration)
     "@types/body-parser": "^1.19.2",
     "@types/mongoose": "^5.11.97",
     "@types/passport": "^1.0.12",
