@@ -39,9 +39,49 @@ router.get('/pricing-list', async (req: Request, res: Response) => {
   logDebug('pricing-list');
 
   try {
-    const pricingList = await DB.find('sku', { platform: STRIPE_SKU_PLATFORM }, null, { sort: { value: 1 } });
-    logDebug('pricingList', pricingList);
+    // New B2B SaaS Pricing Structure
+    // Frontend passes the Stripe Price ID directly to /stripe/create
+    const pricingList = [
+      {
+        stripe_price_id: 'trial', // Special case - no Stripe, just signup
+        description: 'Trial',
+        value: 0,
+        inputTokens: 5000,
+        outputTokens: 5000,
+        users: 1,
+        featured: false,
+        isFreeTrial: true,
+      },
+      {
+        stripe_price_id: process.env.STRIPE_PRICE_SOLO_DEV || 'CONFIGURE_IN_ENV',
+        description: 'Solo Dev',
+        value: 9,
+        inputTokens: 25000,
+        outputTokens: 10000,
+        users: 1,
+        featured: true,
+      },
+      {
+        stripe_price_id: process.env.STRIPE_PRICE_INDIE_STUDIO || 'CONFIGURE_IN_ENV',
+        description: 'Indie Studio',
+        value: 59,
+        inputTokens: 250000,
+        outputTokens: 100000,
+        users: 3,
+        featured: false,
+      },
+      {
+        stripe_price_id: process.env.STRIPE_PRICE_ENTERPRISE || 'CONFIGURE_IN_ENV',
+        description: 'Enterprise',
+        value: 259,
+        inputTokens: 25000000,
+        outputTokens: 10000000,
+        users: 'Unlimited',
+        featured: false,
+      },
+    ];
 
+    logDebug('pricingList', pricingList);
     res.json(pricingList);
   } catch (error) {
     logError('Error:', error);

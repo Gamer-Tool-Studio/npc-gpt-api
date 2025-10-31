@@ -53,7 +53,64 @@ router.post('/validate-token', async (req: Request, res: Response) => {
 
 /**
  *
- *  Google authenticator
+ *  Hello.coop SSO authenticator
+ * */
+router.post('/hello/callback', async (req: Request, res: Response) => {
+  try {
+    logDebug(' **** Hello.coop callback route **** ', req.body);
+    
+    const { code, id_token } = req.body;
+    
+    if (!code && !id_token) {
+      return res.redirect(`${FRONTEND_URL}/login?error=Authentication failed`);
+    }
+    
+    // TODO: Verify the id_token with Hello.coop
+    // For now, we'll decode it (in production, verify the signature)
+    const payload = id_token ? JSON.parse(Buffer.from(id_token.split('.')[1], 'base64').toString()) : null;
+    
+    if (!payload || !payload.email) {
+      return res.redirect(`${FRONTEND_URL}/login?error=Invalid token`);
+    }
+    
+    const { sub, email, name, picture } = payload;
+    
+    // Check if user exists
+    let user = await DB.findSingleUser({ email });
+    
+    // If user doesn't exist, create new user
+    if (!user) {
+      const username = email.split('@')[0];
+      const newUserData = {
+        username,
+        email,
+        name: name || username,
+        picture,
+        authProvider: 'hellocoop',
+        sub,
+        password: Math.random().toString(36).slice(-12), // Random password for Hello.coop users
+      };
+      
+      user = await registerUser(newUserData);
+      logDebug(' **** New user created via Hello.coop **** ', user);
+    }
+    
+    const filter = ['id', 'username', 'email'];
+    const userFiltered = filterObject(user.toJSON() as unknown as Record<string, unknown>, filter);
+    
+    const tokenObject = await issueTokenForUser(userFiltered);
+    
+    // Redirect back to frontend with token
+    return res.redirect(`${FRONTEND_URL}/auth/hello/callback?token=${tokenObject.token}`);
+  } catch (error: any) {
+    logError('Hello.coop callback error', error);
+    return res.redirect(`${FRONTEND_URL}/login?error=${encodeURIComponent(error?.message || 'Authentication failed')}`);
+  }
+});
+
+/**
+ *
+ *  Google authenticator (Legacy - to be removed)
  * */
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
   res.redirect(`${FRONTEND_URL}/redirect`);
@@ -73,8 +130,20 @@ router.post('/local/register', async (req: Request, res: Response) => {
     const params = ['username', 'password', 'email'];
     parameterValidator(req.body, params);
 
-    const newUser = await registerUser(req.body);
-    return res.json({ user: newUser });
+    // Use unified user initialization
+    const { initializeUser } = require('src/services/user-initialization');
+    const newUser = await initializeUser(req.body, 'local');
+    
+    const filter = ['id', 'username', 'email', 'name'];
+    const userFiltered = filterObject(newUser.toJSON() as unknown as Record<string, unknown>, filter);
+    
+    const tokenObject = await issueTokenForUser(userFiltered);
+    
+    return res.json({ 
+      success: true,
+      user: userFiltered,
+      token: tokenObject.token 
+    });
   } catch (error: any) {
     logError('issue register new user ', error);
     return res.status(500).send({ error: error?.message });

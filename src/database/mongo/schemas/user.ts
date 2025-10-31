@@ -19,9 +19,18 @@ const UserSchema = new Schema(
     password: String,
     type: String,
     photo: String,
+    picture: String, // Profile picture URL (for SSO)
+    name: String, // Full name
     user_data: String,
     tokens: [TokenEntrySchema],
-    organization: { type: Schema.Types.ObjectId, ref: 'organization' },
+    organization: { type: Schema.Types.ObjectId, ref: 'organization', required: true },
+    // Role-based access
+    role: { type: String, enum: ['admin', 'user'], default: 'user' },
+    // SSO & Auth fields
+    authProvider: { type: String, enum: ['local', 'hellocoop', 'google'], default: 'local' },
+    authProviderId: String, // Provider-specific ID (sub for Hello.coop)
+    passwordRequired: { type: Boolean, default: true },
+    emailVerified: { type: Boolean, default: false },
   },
   { collection: 'user', versionKey: false },
 );

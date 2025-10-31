@@ -25,7 +25,11 @@ const authRoutes = [
   '/api/v1/chat/send-message',
   '/api/v1/user/balance',
   '/api/v1/stripe/create',
-  '/api/v1/user/balance',
+  '/api/v1/user/organization/members',
+  '/api/v1/user/organization/name',
+  '/api/v1/user/usage-stats',
+  '/api/v1/user/update-profile',
+  '/api/v1/user/update-picture',
 ];
 
 const signValidatorHandler = async (req: Request, res: Response, next: NextFunction) => {
@@ -34,7 +38,13 @@ const signValidatorHandler = async (req: Request, res: Response, next: NextFunct
   const { authorization } = req.headers;
 
   const calledUrl = req.originalUrl.split('?')[0];
-  if (authRoutes.includes(calledUrl)) {
+  
+  // Check if route requires authentication (exact match or pattern match for parameterized routes)
+  const requiresAuth = authRoutes.includes(calledUrl) || 
+    calledUrl.match(/^\/api\/v1\/user\/organization\/members\/[^\/]+\/role$/) ||
+    calledUrl.match(/^\/api\/v1\/user\/organization\/members\/[^\/]+$/);
+  
+  if (requiresAuth) {
     try {
       if (!authorization) {
         return res.status(errors[UNAUTHORIZED].status).json(errors[UNAUTHORIZED].msg);

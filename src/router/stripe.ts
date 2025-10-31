@@ -11,15 +11,83 @@ const router = Router();
 
 router.get('/success', async (req: Request, res: Response) => {
   try {
-    logDebug(' **** callback **** query ', req.query);
+    logDebug(' **** success callback **** query ', req.query);
 
-    // const checkBalanceResponse = await checkBalance(req.query.session_id as string);
-    // logDebug(' **** checkBalanceResponse ****  ', checkBalanceResponse);
+    const sessionId = req.query.session_id as string;
+    
+    // In development, manually trigger token addition since webhooks don't work on localhost
+    if (process.env.NODE_ENV === 'development' && sessionId) {
+      try {
+        logDebug('🧪 DEV MODE - Retrieving session and adding tokens');
+        
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+        
+        logDebug('Session retrieved:', session.id);
+        
+        // Trigger token addition
+        await addTokens(session);
+        
+        logDebug('✅ Tokens added in dev mode');
+      } catch (error: any) {
+        logError('Failed to add tokens in dev mode:', error);
+      }
+    }
 
-    res.redirect(`${FRONTEND_URL}/dashboard`);
-  } catch (ex) {
-    logError('get todo ', ex);
-    res.status(500).json({ error: ex });
+    res.redirect(`${FRONTEND_URL}/dashboard?payment=success`);
+  } catch (ex: any) {
+    logError('success callback error ', ex);
+    res.status(500).json({ error: ex?.message || 'Unknown error' });
+  }
+});
+
+// TEST ENDPOINT - Only for local development
+// Simulates a successful Stripe purchase to test webhook flow
+router.post('/test-purchase', async (req: Request, res: Response) => {
+  try {
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({ error: 'Test endpoint not available in production' });
+    }
+
+    const { email, price_id } = req.body;
+    
+    if (!email || !price_id) {
+      return res.status(400).json({ error: 'Missing email or price_id' });
+    }
+
+    logDebug('🧪 TEST PURCHASE - Simulating webhook for:', { email, price_id });
+
+    // Simulate a checkout.session.completed event
+    const mockCheckoutSession = {
+      id: 'cs_test_manual_' + Date.now(),
+      customer_email: email,
+      payment_intent: 'pi_test_manual_' + Date.now(),
+      metadata: {
+        user_email: email,
+        price_id: price_id,
+      },
+      mode: 'payment',
+      status: 'complete',
+      payment_status: 'paid',
+    };
+
+    // Create a mock line item for the session
+    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+    const price = await stripe.prices.retrieve(price_id);
+    
+    // Manually call addTokens with proper session structure
+    const result = await addTokens(mockCheckoutSession as any);
+    
+    logDebug('🧪 TEST PURCHASE - Tokens added:', result);
+    
+    res.json({ 
+      success: true, 
+      message: 'Test purchase processed - tokens added',
+      result 
+    });
+  } catch (ex: any) {
+    logError('🧪 TEST PURCHASE - Error:', ex);
+    res.status(500).json({ error: ex?.message || 'Unknown error' });
   }
 });
 
@@ -42,9 +110,9 @@ router.post('/create', async (req: Request, res: Response) => {
     logDebug(' **** createPaymentLinkResponse ****  ', createPaymentLinkResponse);
 
     res.send(createPaymentLinkResponse);
-  } catch (ex) {
+  } catch (ex: any) {
     logError('/create post', ex);
-    res.status(500).json({ error: ex });
+    res.status(500).json({ error: ex?.message || 'Unknown error' });
   }
 });
 
@@ -52,6 +120,17 @@ export const webhook = async (request: Request, response: Response) => {
   logDebug(' **** webhook ****  ');
 
   let event = request.body;
+  
+  // Parse raw body if it's a Buffer (from raw body parser)
+  if (Buffer.isBuffer(request.body)) {
+    try {
+      event = JSON.parse(request.body.toString());
+    } catch (err) {
+      logError('Failed to parse webhook body', err);
+      return response.sendStatus(400);
+    }
+  }
+  
   // Only verify the event if you have an endpoint secret defined.
   // Otherwise use the basic event deserialized with JSON.parse
   if (STRIPE_WEBHOOK_SECRET) {
