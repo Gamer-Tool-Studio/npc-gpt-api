@@ -34,6 +34,8 @@ enum EnvEnum {
   STRIPE_WEBHOOK_SECRET = 'STRIPE_WEBHOOK_SECRET',
   STRIPE_SKU_PLATFORM = 'STRIPE_SKU_PLATFORM',
   STRIPE_PAYMENT_METHODS_TYPES = 'STRIPE_PAYMENT_METHODS_TYPES',
+  
+  ADMIN_EMAIL = 'ADMIN_EMAIL',
 }
 
 const env = {
@@ -179,6 +181,11 @@ const env = {
     env: 'STRIPE_PAYMENT_METHODS_TYPES',
     type: 'string',
     required: true,
+  },
+  ADMIN_EMAIL: {
+    env: 'ADMIN_EMAIL',
+    type: 'string',
+    required: false,
   },
 
 } as const;

@@ -87,16 +87,21 @@ export async function initializeUser(
     await DB.UpdateOneOrganization(
       { _id: organization._id },
       {
-        $set: { ownerId: user._id },
+        $set: { 
+          ownerId: user._id,
+          hasUsedFreeTrial: true, // Mark trial as used for this org
+          freeTrialClaimedAt: new Date(),
+          freeTrialClaimedBy: user._id,
+        },
         $push: { members: user._id },
       }
     );
-    logDebug('✅ User linked to organization');
+    logDebug('✅ User linked to organization & free trial marked as claimed');
 
     // 7. Initialize billing account (org-level billing)
     logDebug('💰 Creating billing account...');
     await createBillingAccount(userId, billingDefaults);
-    logDebug('✅ Billing account created');
+    logDebug('✅ Billing account created with free trial tokens');
 
     // 8. Log registration event
     logDebug('✨ User & Organization initialization complete', {

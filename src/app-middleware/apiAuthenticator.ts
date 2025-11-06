@@ -30,6 +30,12 @@ const authRoutes = [
   '/api/v1/user/usage-stats',
   '/api/v1/user/update-profile',
   '/api/v1/user/update-picture',
+  '/api/v1/metrics/admin/metrics',
+  '/api/v1/metrics/debug-auth',
+  '/api/v1/metrics/admin/users',
+  '/api/v1/metrics/admin/payments',
+  '/api/v1/metrics/admin/organizations',
+  '/api/v1/metrics/admin/api-usage',
 ];
 
 const signValidatorHandler = async (req: Request, res: Response, next: NextFunction) => {

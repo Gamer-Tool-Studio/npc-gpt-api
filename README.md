@@ -9,6 +9,7 @@ Send requests with user inputs to the GPT-3 API.
 Define character contexts and traits to guide GPT-3's responses.
 Send interaction history in the requests to keep GPT-3 in sycn with your conversation flow.
 Receive AI-generated responses as your in-game characters.
+**Admin Metrics Dashboard** - Track platform usage, revenue, and API calls (see [METRICS_SETUP.md](./METRICS_SETUP.md))
 
 ## Installation 📦
 

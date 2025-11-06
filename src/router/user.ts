@@ -351,4 +351,35 @@ router.delete('/organization/members/:memberId', async (req: Request, res: Respo
   }
 });
 
+/**
+ * Check if organization has already used free trial
+ * Public endpoint (no auth required) - just returns info
+ */
+router.get('/trial-status', async (req: Request, res: Response) => {
+  try {
+    // If user is logged in, check their organization's trial status
+    if (req.user?.id) {
+      const user = await DB.findSingleUser({ _id: req.user.id }, null, null);
+      if (user && user.organization) {
+        const org = await DB.findOrganization({ _id: user.organization }, null, null);
+        return res.json({
+          hasUsedTrial: org?.hasUsedFreeTrial || false,
+          claimedAt: org?.freeTrialClaimedAt || null,
+          isEligible: !org?.hasUsedFreeTrial,
+        });
+      }
+    }
+    
+    // Not logged in - new signups are eligible
+    return res.json({
+      hasUsedTrial: false,
+      claimedAt: null,
+      isEligible: true,
+    });
+  } catch (error) {
+    logError('Error checking trial status:', error);
+    res.status(500).json({ error: 'Error checking trial status' });
+  }
+});
+
 export default router;

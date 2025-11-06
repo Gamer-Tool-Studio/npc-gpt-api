@@ -7,6 +7,9 @@ const OrganizationSchema = new Schema(
     orgId: { type: String, unique: true, required: true }, // Public org identifier (org_xxxxx)
     members: [{ type: Schema.Types.ObjectId, ref: 'user' }],
     ownerId: { type: Schema.Types.ObjectId, ref: 'user' }, // First admin user (set after user creation)
+    hasUsedFreeTrial: { type: Boolean, default: false }, // Track if org has claimed free trial
+    freeTrialClaimedAt: { type: Date, default: null }, // When the trial was claimed
+    freeTrialClaimedBy: { type: Schema.Types.ObjectId, ref: 'user', default: null }, // Who claimed it
   },
   { collection: 'organization', versionKey: false },
 );
