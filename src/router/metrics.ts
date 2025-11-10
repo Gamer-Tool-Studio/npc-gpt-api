@@ -75,6 +75,7 @@ router.get('/admin/metrics', async (req: Request, res: Response) => {
     // 2. Total Organizations
     const allOrganizations = await mongoDB.find(DataBaseSchemas.ORGANIZATION, dateFilter, null, null);
     const totalOrganizations = allOrganizations.length;
+    const freeTrialSubscriptions = allOrganizations.filter((org: any) => org.hasUsedFreeTrial).length;
     
     // 3. API Keys Generated (count tokens in all users)
     const totalApiKeys = allUsers.reduce((sum: number, user: any) => {
@@ -90,6 +91,28 @@ router.get('/admin/metrics', async (req: Request, res: Response) => {
     const totalOutputTokens = allBillingDays.reduce((sum: number, record: any) => {
       return sum + (record.outputWords || 0);
     }, 0);
+    const activeKeyWindowEnd = startDate ? new Date(startDate) : now;
+    const activeKeyWindowStart = new Date(activeKeyWindowEnd.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const activeKeyFilter: any = {
+      createdAt: {
+        $gte: activeKeyWindowStart,
+      },
+    };
+    if (startDate) {
+      activeKeyFilter.createdAt.$lt = startDate;
+    }
+    const activeKeyBillingDays = await mongoDB.find(
+      DataBaseSchemas.BILLING_DAY,
+      activeKeyFilter,
+      null,
+      null,
+    );
+    const activeApiKeys = activeKeyBillingDays.reduce((set: Set<string>, record: any) => {
+      if (record.key) {
+        set.add(record.key);
+      }
+      return set;
+    }, new Set<string>()).size;
     
     // 5. Stripe Payments (checkout sessions) - filter by session creation date
     const allCheckouts = await mongoDB.find(DataBaseSchemas.CHECKOUT, {}, null, null);
@@ -128,6 +151,14 @@ router.get('/admin/metrics', async (req: Request, res: Response) => {
     const recentFilter = startDate ? dateFilter : { createdAt: { $gte: thirtyDaysAgo } };
     const recentUsers = await mongoDB.find(DataBaseSchemas.USER, recentFilter, null, null);
     const recentSignups = recentUsers.length;
+    const newOrgWindowStart = startDate ?? thirtyDaysAgo;
+    const newOrganizations = await mongoDB.find(
+      DataBaseSchemas.ORGANIZATION,
+      { createdAt: { $gte: newOrgWindowStart } },
+      null,
+      null,
+    );
+    const newOrganizationsCount = newOrganizations.length;
     
     // 8. Recent Payments (last 30 days)
     const recentCheckouts = allCheckouts.filter((checkout: any) => {
@@ -179,19 +210,23 @@ router.get('/admin/metrics', async (req: Request, res: Response) => {
         totalUsers,
         totalOrganizations,
         totalApiKeys,
+        activeApiKeys,
         activeSubscriptions,
         recentSignups,
+        newOrganizations: newOrganizationsCount,
       },
       payments: {
         totalPayments,
         totalRevenue,
         recentPayments: recentPaymentCount,
         recentRevenue,
+        freeTrialSubscriptions,
       },
       apiUsage: {
         totalCalls: totalApiCalls,
         totalInputTokens,
         totalOutputTokens,
+        activeApiKeys,
         usageTimeline,
       },
       timestamp: new Date(),
