@@ -31,28 +31,12 @@ router.get('/debug-auth', async (req: Request, res: Response) => {
  */
 router.get('/admin/metrics', async (req: Request, res: Response) => {
   try {
-    // Admin email check
-    const userEmail = req.user?.email;
-    const ADMIN_EMAIL = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL;
-    
-    logDebug('Metrics access attempt:', { 
-      userEmail, 
-      ADMIN_EMAIL, 
-      user: req.user,
-      match: userEmail === ADMIN_EMAIL 
-    });
-    
-    if (!ADMIN_EMAIL) {
-      logError('ADMIN_EMAIL environment variable not set');
-      return res.status(500).json({ error: 'Server configuration error' });
-    }
-    
-    if (userEmail !== ADMIN_EMAIL) {
-      logError(`Unauthorized metrics access attempt by: ${userEmail}`);
+    if (!isAdminRequest(req)) {
+      logError('Unauthorized metrics access attempt', { user: req.user });
       return res.status(403).json({ error: 'Unauthorized - Admin only' });
     }
 
-    logDebug('Fetching admin metrics...');
+    logDebug('Fetching admin metrics...', { user: req.user });
 
     // Get time filter from query params (default: all time)
     const { timeFilter = 'all' } = req.query;
@@ -223,10 +207,7 @@ router.get('/admin/metrics', async (req: Request, res: Response) => {
  */
 router.get('/admin/users', async (req: Request, res: Response) => {
   try {
-    const userEmail = req.user?.email;
-    const ADMIN_EMAIL = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL;
-    
-    if (userEmail !== ADMIN_EMAIL) {
+    if (!isAdminRequest(req)) {
       return res.status(403).json({ error: 'Unauthorized - Admin only' });
     }
 
@@ -257,10 +238,7 @@ router.get('/admin/users', async (req: Request, res: Response) => {
  */
 router.get('/admin/payments', async (req: Request, res: Response) => {
   try {
-    const userEmail = req.user?.email;
-    const ADMIN_EMAIL = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL;
-    
-    if (userEmail !== ADMIN_EMAIL) {
+    if (!isAdminRequest(req)) {
       return res.status(403).json({ error: 'Unauthorized - Admin only' });
     }
 
@@ -299,10 +277,7 @@ router.get('/admin/payments', async (req: Request, res: Response) => {
  */
 router.get('/admin/organizations', async (req: Request, res: Response) => {
   try {
-    const userEmail = req.user?.email;
-    const ADMIN_EMAIL = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL;
-    
-    if (userEmail !== ADMIN_EMAIL) {
+    if (!isAdminRequest(req)) {
       return res.status(403).json({ error: 'Unauthorized - Admin only' });
     }
 
@@ -331,10 +306,7 @@ router.get('/admin/organizations', async (req: Request, res: Response) => {
  */
 router.get('/admin/api-usage', async (req: Request, res: Response) => {
   try {
-    const userEmail = req.user?.email;
-    const ADMIN_EMAIL = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL;
-    
-    if (userEmail !== ADMIN_EMAIL) {
+    if (!isAdminRequest(req)) {
       return res.status(403).json({ error: 'Unauthorized - Admin only' });
     }
 
@@ -364,6 +336,262 @@ router.get('/admin/api-usage', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Get aggregated API usage grouped by organization, user, or API key
+ */
+router.get('/admin/api-usage-summary', async (req: Request, res: Response) => {
+  try {
+    if (!isAdminRequest(req)) {
+      return res.status(403).json({ error: 'Unauthorized - Admin only' });
+    }
+
+    const {
+      timeFilter = 'all',
+      startDate: customStart,
+      groupBy = 'user',
+    } = req.query as { timeFilter?: string; startDate?: string; groupBy?: string };
+
+    const allowedGroupings = ['organization', 'user', 'key'];
+    if (!allowedGroupings.includes(groupBy)) {
+      return res.status(400).json({ error: 'Invalid groupBy parameter' });
+    }
+
+    const dateFilter = getDateFilter(timeFilter, customStart);
+
+    const [usageRecords, users, organizations] = await Promise.all([
+      mongoDB.find(DataBaseSchemas.BILLING_DAY, dateFilter, null, null),
+      mongoDB.find(DataBaseSchemas.USER, {}, null, null),
+      mongoDB.find(DataBaseSchemas.ORGANIZATION, {}, null, null),
+    ]);
+
+    const userMap = new Map<string, any>();
+    users.forEach((user: any) => {
+      userMap.set(user._id?.toString?.() || user.id, user);
+    });
+
+    const organizationMap = new Map<string, any>();
+    organizations.forEach((org: any) => {
+      organizationMap.set(org._id?.toString?.() || org.id, org);
+    });
+
+    type SummaryEntry = {
+      id: string;
+      label: string;
+      secondaryLabel?: string;
+      totalCalls: number;
+      totalInputTokens: number;
+      totalOutputTokens: number;
+      metadata?: Record<string, any>;
+    };
+
+    const summaryMap = new Map<string, SummaryEntry>();
+
+    usageRecords.forEach((record: any) => {
+      const accountId = record.accountId?.toString?.() || record.accountId;
+      const key = record.key || 'unknown';
+
+      let summaryKey = '';
+      let label = '';
+      let secondaryLabel: string | undefined;
+      const metadata: Record<string, any> = {};
+
+      if (groupBy === 'key') {
+        summaryKey = key;
+        label = key === 'unknown' ? 'Unknown Key' : key;
+      const userForKey = accountId ? userMap.get(accountId) : null;
+      const orgForKeyId = userForKey?.organization?.toString?.() || userForKey?.organization;
+      const orgForKey = orgForKeyId ? organizationMap.get(orgForKeyId) : null;
+      metadata.accountId = accountId;
+      metadata.userEmail = userForKey?.email || '';
+      metadata.organizationId = orgForKeyId;
+      metadata.organizationName = orgForKey?.name || '';
+      } else if (groupBy === 'user') {
+        summaryKey = accountId || 'unknown';
+        const user = accountId ? userMap.get(accountId) : null;
+        label = user?.email || `User ${summaryKey}`;
+        secondaryLabel = user?.name;
+        metadata.organizationId = user?.organization?.toString?.() || user?.organization;
+        metadata.organizationName = metadata.organizationId
+          ? (organizationMap.get(metadata.organizationId)?.name || '')
+          : '';
+      } else if (groupBy === 'organization') {
+        const user = accountId ? userMap.get(accountId) : null;
+        const orgId = user?.organization?.toString?.() || user?.organization;
+        summaryKey = orgId || 'no-organization';
+        const org = orgId ? organizationMap.get(orgId) : null;
+        label = org?.name || 'No Organization';
+        metadata.organizationId = orgId;
+        metadata.members = org?.members?.length || 0;
+      }
+
+      if (!summaryKey) {
+        summaryKey = 'unknown';
+        label = 'Unknown';
+      }
+
+      const entry = summaryMap.get(summaryKey) || {
+        id: summaryKey,
+        label,
+        secondaryLabel,
+        totalCalls: 0,
+        totalInputTokens: 0,
+        totalOutputTokens: 0,
+        metadata: {},
+      };
+
+      entry.totalCalls += 1;
+      entry.totalInputTokens += record.inputWords || 0;
+      entry.totalOutputTokens += record.outputWords || 0;
+
+      entry.metadata = { ...entry.metadata, ...metadata };
+      if (secondaryLabel) entry.secondaryLabel = secondaryLabel;
+
+      summaryMap.set(summaryKey, entry);
+    });
+
+    const results = Array.from(summaryMap.values()).sort(
+      (a, b) => b.totalCalls - a.totalCalls,
+    );
+
+    res.json({
+      groupBy,
+      timeFilter,
+      results,
+    });
+  } catch (error) {
+    logError('Error fetching API usage summary:', error);
+    res.status(500).json({ error: 'Error fetching API usage summary' });
+  }
+});
+
+/**
+ * Get revenue and pack purchases grouped by organization
+ */
+router.get('/admin/revenue-summary', async (req: Request, res: Response) => {
+  try {
+    if (!isAdminRequest(req)) {
+      return res.status(403).json({ error: 'Unauthorized - Admin only' });
+    }
+
+    const { timeFilter = 'all', startDate: customStart } = req.query;
+    const startDate = getDateFilterValue(timeFilter as string, customStart as string);
+
+    const [organizations, users, checkouts] = await Promise.all([
+      mongoDB.find(DataBaseSchemas.ORGANIZATION, {}, null, null),
+      mongoDB.find(DataBaseSchemas.USER, {}, null, null),
+      mongoDB.find(DataBaseSchemas.CHECKOUT, {}, null, null),
+    ]);
+
+    const organizationMap = new Map<string, any>();
+    organizations.forEach((org: any) => {
+      organizationMap.set(org._id?.toString?.() || org.id, org);
+    });
+
+    const userMap = new Map<string, any>();
+    users.forEach((user: any) => {
+      userMap.set(user._id?.toString?.() || user.id, user);
+    });
+
+    type PackSummary = {
+      label: string;
+      count: number;
+    };
+
+    type RevenueEntry = {
+      orgId: string;
+      orgName: string;
+      members: number;
+      totalRevenue: number;
+      totalPayments: number;
+      packs: Record<string, PackSummary>;
+      hasUsedFreeTrial: boolean;
+    };
+
+    const revenueMap = new Map<string, RevenueEntry>();
+
+    const priceToPlanMap: Record<string, { key: string; label: string }> = {};
+    if (process.env.STRIPE_PRICE_SOLO_DEV) {
+      priceToPlanMap[process.env.STRIPE_PRICE_SOLO_DEV] = { key: 'solo', label: 'Solo Dev' };
+    }
+    if (process.env.STRIPE_PRICE_INDIE_STUDIO) {
+      priceToPlanMap[process.env.STRIPE_PRICE_INDIE_STUDIO] = { key: 'indie', label: 'Indie Studio' };
+    }
+    if (process.env.STRIPE_PRICE_ENTERPRISE) {
+      priceToPlanMap[process.env.STRIPE_PRICE_ENTERPRISE] = { key: 'enterprise', label: 'Enterprise' };
+    }
+
+    const incrementPack = (entry: RevenueEntry, planKey: string, label: string) => {
+      if (!entry.packs[planKey]) {
+        entry.packs[planKey] = { label, count: 0 };
+      }
+      entry.packs[planKey].count += 1;
+    };
+
+    checkouts.forEach((checkout: any) => {
+      const accountId = checkout.accountId?.toString?.() || checkout.accountId;
+      const user = accountId ? userMap.get(accountId) : null;
+      const orgId = user?.organization?.toString?.() || user?.organization;
+      const org = orgId ? organizationMap.get(orgId) : null;
+
+      const entryKey = orgId || 'no-organization';
+
+      const entry =
+        revenueMap.get(entryKey) ||
+        {
+          orgId: orgId || 'no-organization',
+          orgName: org?.name || (orgId ? `Org ${orgId}` : 'No Organization'),
+          members: org?.members?.length || 0,
+          totalRevenue: 0,
+          totalPayments: 0,
+          packs: {},
+          hasUsedFreeTrial: org?.hasUsedFreeTrial || false,
+        };
+
+      checkout.checkoutSessions?.forEach((session: any) => {
+        if (!session.created) return;
+        const sessionDate = new Date(session.created * 1000);
+        if (startDate && sessionDate < startDate) return;
+
+        const amount = session.amount_total ? session.amount_total / 100 : 0;
+        entry.totalRevenue += amount;
+        entry.totalPayments += 1;
+
+        const priceId =
+          session.metadata?.price_id ||
+          session.price?.id ||
+          session.display_items?.[0]?.price?.id ||
+          '';
+
+        const plan =
+          (priceId && priceToPlanMap[priceId]) || { key: 'unknown', label: 'Unknown Pack' };
+
+        incrementPack(entry, plan.key, plan.label);
+      });
+
+      revenueMap.set(entryKey, entry);
+    });
+
+    // Ensure free trial flag is represented as a pack entry
+    revenueMap.forEach((entry) => {
+      if (entry.hasUsedFreeTrial) {
+        incrementPack(entry, 'freeTrial', 'Free Trial');
+      }
+    });
+
+    const results = Array.from(revenueMap.values()).sort(
+      (a, b) => b.totalRevenue - a.totalRevenue,
+    );
+
+    res.json({
+      timeFilter,
+      results,
+    });
+  } catch (error) {
+    logError('Error fetching revenue summary:', error);
+    res.status(500).json({ error: 'Error fetching revenue summary' });
+  }
+});
+
 // Helper function to get date filter
 function getDateFilter(timeFilter: string, customStart?: string) {
   const startDate = getDateFilterValue(timeFilter, customStart);
@@ -386,6 +614,23 @@ function getDateFilterValue(timeFilter: string, customStart?: string): Date | un
     default:
       return undefined;
   }
+}
+
+function isAdminRequest(req: Request): boolean {
+  const user = req.user as any;
+  const userEmail = user?.email;
+  const userRole = user?.role;
+  const ADMIN_EMAIL = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL;
+
+  if (userRole === 'admin') {
+    return true;
+  }
+
+  if (ADMIN_EMAIL && userEmail === ADMIN_EMAIL) {
+    return true;
+  }
+
+  return false;
 }
 
 export default router;
